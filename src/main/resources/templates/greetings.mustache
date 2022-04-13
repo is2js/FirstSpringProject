@@ -1,12 +1,10 @@
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-<h1>{{username}}님, 반갑습니다!</h1>
-</body>
-</html>
+<!--4-2 기본 templates를 기본경로로 인식하며, 변수가 아니라 파일의 경우 꺽쇠를 이용해서 가져온다.-->
+{{>layouts/header}}
+
+<!-- 4-1 바뀌는 부분 윗대가리 전체를 잘라서 layouts > header.mustache로 옮긴다-->
+<!-- content -->
+<div class="bg-dark text-white p-5">
+    <h1>{{username}}님, 방갑습니다!</h1>
+</div>
+
+{{>layouts/footer}}
