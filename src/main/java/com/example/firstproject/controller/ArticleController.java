@@ -3,12 +3,15 @@ package com.example.firstproject.controller;
 import com.example.firstproject.dto.ArticleForm;
 import com.example.firstproject.entity.Article;
 import com.example.firstproject.repository.ArticleRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
+//8-3. controller속 log.info()사용을 위한 애노테이션
+@Slf4j
 public class ArticleController {
 
     @Autowired
@@ -20,17 +23,17 @@ public class ArticleController {
     }
 
     @PostMapping("/articles/create")
-
     public String createArticleForm(ArticleForm form) {
-        //7-1. dto와 entity, save후 응답entity는 toString을 정의한 뒤 dto,entity.toString().soutv로 확인하자.
-        System.out.println("form.toString() = " + form.toString());
+        //8-4. println대신 log.info()를 쓸 수 있게 된다.
+//        System.out.println("form.toString() = " + form.toString());
+        log.info(form.toString());
 
         Article article = form.toEntity();
-        System.out.println("article.toString() = " + article.toString());
+        log.info("article.toString() = " + article.toString());
 
         Article saved = articleRepository.save(article);
-        System.out.println("saved.toString() = " + saved.toString());
+        log.info("saved.toString() = " + saved.toString());
 
-        return "articles/new";
+        return "";
     }
 }

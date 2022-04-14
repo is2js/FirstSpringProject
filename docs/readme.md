@@ -109,9 +109,31 @@ start.spring.io
                 - 참고) /create-saveByInsert문 /read-findBySelect문/ update-find+saveByselect+insert문?/
                   delete-deleteBydelete문
 
+8. 롬복으로 리팩토링
+    - Lombok: 코드간소화 라이브러리, 게터세터생성자toString -> 필수메서드 코드반복을 최소화 + 로깅으로 println 리팩토링됨.
+
+    1. build.gradle에 롬복라이브러리 추가  ~~롬복 플러그인 설치~~(플러그인은 자동설치되어있음)
+        ```
+        //롬복 추가
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        ```
+    2. 리팩토링
+        1. dto -> entity 속 생성자, toString 리팩토링
+            1. @AllArgsConstructor
+            2. @ToString
+        2. controller 속 println 리팩토링
+            1. @Slf4j -> log.info(); // 출력위치도 같이 나온다.
+
 ### my 큰틀
 
-1. controller -> GET 메인 뷰 페이즈 -> 레이아웃 -> POST create form 뷰 페이지 -> create route -> 전달dto -> entity, repository.save()
+1. controller -> GET 메인 뷰 페이즈 -> 레이아웃 ->create(post)요청을 위한 화면 GET /new route + /new form 뷰 페이지 -> create POST용 /create
+   route -> 전달dto -> entity, repository.save()
    h2에 저장후 응답entity 찍어서 확인
     - 1~6
-2. application.properties에서 웹콘솔 h2 접근설정 후 접속 -> db에서 확인하기 
+2. /create saveByInsert문까지만 하고
+    1. application.properties에서 웹콘솔 h2 접근설정 후 접속 `db에서 데이터` 확인
+    2. build.gradle에 `롬복` 라이브러리 추가 후 dto,entity 속 `생성자,toString` / controller 속 `println` 리팩토링
+    - 7~8
+3. 
+   
