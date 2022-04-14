@@ -37,6 +37,44 @@ start.spring.io
         2. div + hr+ p태그로 footer자리에 넣어주기
     3. 1개 레이아웃이 완성되면, 다음 페이지는 템플릿화해서 반영해주기
         1. 섹션별로 코드뭉치들을 layouts폴더>.mustache 파일화 한 다음 -> {{>layouts/header}} 형태로 부른다.
-           1. templates 폴더가 기본 >꺽쇠이용 파일템플릿 사용기본경로다.
+            1. templates 폴더가 기본 >꺽쇠이용 파일템플릿 사용기본경로다.
         2. header 등 윗부분을 짜를 땐 첨부터 자르자.
-        3. 
+5. 폼 데이터 주고 받기
+    1. form -dto-> controller에서 데이터를 받는 객체가 dto
+    2. `폼 페이지`는 layouts폴더처럼, 새로운 articles폴더 > new.mustache로 만든다.
+        1. `form` / input태그 / textarea / `button[type="submit"]` 으로 구성한다.
+            1. form -> .container with `어디로(action="") + 어떻게(method=""")`
+                1. div.mb-3
+                    1. label.form-label
+                    2. input.form-control `with name에 dto변수명`
+                2. div.mb-3
+                    1. label.form-label
+                    2. textarea.form-control[rows="3"] `with name에 dto변수명`
+                3. button.btn.btn-primary[type="submit"]
+        2. **post에서 요청데이터를 보낼 때, controller에서는 dto로 받을 것이다. 그 변수명대로 name에 변수명을 지정해서 보내준다.**
+            1. **강의에서는 form완성 -> controller완성 -> url+action 지정 -> dto 생성후 controller 파라미터로 지정 -> dto 변수명대로 form에
+               name속성주기**
+            2. name과 dto변수명만 같으면 **getter없어도 controller속 dto에 알아서 담긴다.**
+
+    3. 페이지를 먼저 만들었지만, 요청 with 데이터 -> -> 변수 넣어서 화면에 뿌려주는 것은 controller가
+        1. 페에지 폼 -> 어디서(action, url) + 어떻게(method, post) -> controller 까지 정의해줬다면
+    4. **controller가 요청 데이터를 받는 객체 DTO를 만들어줘야한다.**
+        1. 컨트롤러와 동일선상에서 dto패키지를 만들고, dto클래스 ArticleForm을 만들어, 데이터를 받아온다.
+        2. 필드+생성자+**toString**까지 만든다.
+    5. DTO클래스를 정의해준 뒤, controller의 파라미터로 받아준다.
+        1. post form -> controller 파라미터 속 dto객체를 지정하면, 거기다가 받아준다는 뜻
+        2. 즉, 뷰 페이지의 post form에 맞게 dto을 만들고 -> 받는 컨트롤러의 파라미터로 넣어준다.
+
+6. jpa로 데이터 저장 실습
+    1. form (name) -> dto -> controller 파라미터 -> `database`까지 저장하러 가보자.
+    2. 우리는 java를 쓰고, DB는 java를 모르는데, 어떻게 java로 db에게 명령을 할까?
+        1. jpa : server(java)의 명령을 -> db가 java를 이해하도록 도와줌.
+        2. jpa 핵심도구 2가지 : entity + repository
+            1. entity: 자바 객채(dto)를 db가 이해할 수 있도록 규격화해놓은 데이터
+            2. repository: entity를 db에게 전달하고 처리되게 하는 것
+    3. front -> [dto] -> Controller -> [entity] by Repository(일꾼) -> DB 에게 전달 + 처리
+        1. dto를 entity로 변환시켜야한다.
+            ![image-20220414175216790](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175216790.png)
+        2. entity를 repository를 통해 db까지 save시킨다.
+            ![image-20220414175409690](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175409690.png)
+    4. H2라는 데베를 이용할 것이다.
