@@ -76,13 +76,42 @@ start.spring.io
             2. repository: entity를 db에게 전달하고 처리되게 하는 것
                 1. **repository는 dao처럼 interface로 첨부터 만들어준다.?!**
                 2. springboot 제공 CrudRepository<entityT,idT> 인터페이스를 extends상속한 인터페이스로 정의한다.
-                3. copntroller에서는 인터페이스=추상체 repository를 필드값 변수로 가지되, new 구상체 초기화는 생략하고 @애노테이션으로 자동초기화시켜 springboot제공 기능을 가진
-                   구상체로 자동 초기화시킨다. by `@AutoWired`
-                4. dto.toEntity한 entit객체 및 CrudRepository상속 레포지토리 (@AutoWeired로 자동구현체초기화)의 .svae( entity ) 결과값으로 나온 entity를
-                   1. toString()한 것을 각각 찍어보자(보내기전entity, save후 반환되는 entity 출력)
+                3. copntroller에서는 인터페이스=추상체 repository를 필드값 변수로 가지되, new 구상체 초기화는 생략하고 @애노테이션으로 자동초기화시켜 springboot제공 기능을
+                   가진 구상체로 자동 초기화시킨다. by `@AutoWired`
+                4. dto.toEntity한 entit객체 및 CrudRepository상속 레포지토리 (@AutoWeired로 자동구현체초기화)의 .svae( entity ) 결과값으로 나온
+                   entity를
+                    1. toString()한 것을 각각 찍어보자(보내기전entity, save후 반환되는 entity 출력)
     3. front -> [dto] -> Controller -> [entity] by Repository(일꾼) -> DB 에게 전달 + 처리
         1. dto를 entity로 변환시켜야한다.
            ![image-20220414175216790](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175216790.png)
         2. entity를 repository를 통해 db까지 save시킨다.
            ![image-20220414175409690](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175409690.png)
     4. H2라는 데베를 이용할 것이다.
+
+7. h2 db에 저장된 데이터 확인하기
+    - 리뷰: form -(name to field)-> dto -> controller 파라미터 -(dto.toEntity)-> entity -> repository.save(entity) -> 응답
+      entity
+        - 찍어보면, id에 null넣은 entity와, repository.save( entity ) 후 응답되는 entity는 null -> db에서 id배정 하여 다르다.
+        - dto는 front에서 보내준 xxxForm으로 / entity는 미래 테이블명으로 클래스명을 짓고 있네?..
+            - ArticleForm -> front의 Form에서 보낸 데이터를 name-field 일치시켜서 받아주는 DTO 클래스
+                - 객체 form -> form에서 날라온 데이터를 받아주는 dto객체
+            - Article -> 테이블명 -> entity -> dto에서 변환되는 것
+
+    1. repository.save()한 db데이터 직접확인을 위해 H2 DB 사용설정
+        1. src>main>resources> `application.properties`에서 `h2 DB를 웹 콘솔 접근가능 설정`을 적용해줘야한다.
+            1. 프로젝트 만들 때 처음 설정해줬던, dependencies > h2 적용한 것을 `web콘솔에서 접속 가능하게하는 설정`
+                - `spring.h2.console.enabled=true`
+    2. `http://localhost:8080/h2-console`로 h2접속하기
+        1. jdbc url은 매번 바뀌는 첨에 접속안될 수 있다. -> 디버그창에서 jdbc검색해서 mem주소 복사해오기 (나중에는 자동설정할 것임.)
+        2. /create(insert문) by .save()메서드를 h2콘솔에서 insert 로 넣어보기
+            - DB에서 문자열은 홑따옴표, java/python문자열만 쌍따옴표
+            - entity에 autoincrement를 지정해줬지만, DB자체에는 autoincrement가 안걸려 있으니, id도 직접 입력해준다.
+                - 참고) /create-saveByInsert문 /read-findBySelect문/ update-find+saveByselect+insert문?/
+                  delete-deleteBydelete문
+
+### my 큰틀
+
+1. controller -> GET 메인 뷰 페이즈 -> 레이아웃 -> POST create form 뷰 페이지 -> create route -> 전달dto -> entity, repository.save()
+   h2에 저장후 응답entity 찍어서 확인
+    - 1~6
+2. application.properties에서 웹콘솔 h2 접근설정 후 접속 -> db에서 확인하기 
