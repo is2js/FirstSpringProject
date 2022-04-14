@@ -17,6 +17,7 @@ start.spring.io
     - `jpa`
 
 - 다운로드후, 인텔리제이로 zip속 폴더를 열어버리면 됨.
+- mustache 플러그인을 추가설치해야, intellij가 인식해줌.
 
 ### 강의
 
@@ -65,16 +66,23 @@ start.spring.io
         1. post form -> controller 파라미터 속 dto객체를 지정하면, 거기다가 받아준다는 뜻
         2. 즉, 뷰 페이지의 post form에 맞게 dto을 만들고 -> 받는 컨트롤러의 파라미터로 넣어준다.
 
-6. jpa로 데이터 저장 실습
+6. entity, repository생성후 데이터 저장 실습
     1. form (name) -> dto -> controller 파라미터 -> `database`까지 저장하러 가보자.
     2. 우리는 java를 쓰고, DB는 java를 모르는데, 어떻게 java로 db에게 명령을 할까?
         1. jpa : server(java)의 명령을 -> db가 java를 이해하도록 도와줌.
         2. jpa 핵심도구 2가지 : entity + repository
             1. entity: 자바 객채(dto)를 db가 이해할 수 있도록 규격화해놓은 데이터
+                1. my) **dto와 비슷한 필드+@어노테이션을 달아주며 -> 테이블과 1:1매핑되는 클래스**
             2. repository: entity를 db에게 전달하고 처리되게 하는 것
+                1. **repository는 dao처럼 interface로 첨부터 만들어준다.?!**
+                2. springboot 제공 CrudRepository<entityT,idT> 인터페이스를 extends상속한 인터페이스로 정의한다.
+                3. copntroller에서는 인터페이스=추상체 repository를 필드값 변수로 가지되, new 구상체 초기화는 생략하고 @애노테이션으로 자동초기화시켜 springboot제공 기능을 가진
+                   구상체로 자동 초기화시킨다. by `@AutoWired`
+                4. dto.toEntity한 entit객체 및 CrudRepository상속 레포지토리 (@AutoWeired로 자동구현체초기화)의 .svae( entity ) 결과값으로 나온 entity를
+                   1. toString()한 것을 각각 찍어보자(보내기전entity, save후 반환되는 entity 출력)
     3. front -> [dto] -> Controller -> [entity] by Repository(일꾼) -> DB 에게 전달 + 처리
         1. dto를 entity로 변환시켜야한다.
-            ![image-20220414175216790](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175216790.png)
+           ![image-20220414175216790](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175216790.png)
         2. entity를 repository를 통해 db까지 save시킨다.
-            ![image-20220414175409690](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175409690.png)
+           ![image-20220414175409690](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220414175409690.png)
     4. H2라는 데베를 이용할 것이다.
