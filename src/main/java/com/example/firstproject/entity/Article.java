@@ -10,7 +10,7 @@ import lombok.ToString;
 
 //8-2. 롬복 애노테이션으로 필드받는 생성자/toString 코드 대체
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor // 파라미터가 없는 default 생성자
 @ToString
 @Entity
 public class Article {

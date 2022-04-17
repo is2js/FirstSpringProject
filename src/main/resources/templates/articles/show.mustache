@@ -1,0 +1,24 @@
+{{>layouts/header}}
+<!-- 9-4. 데이터를 뿌려줄 show 페이지 만들기 -->
+<!--bootstrap -> docs -> table 복붙 -->
+<!-- 잘 보이나 확인 후, table간소화 (t head > tr 1줄 + t body> tr 1줄만)-->
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Title</th>
+        <th scope="col">Content</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 9-5. model 속 [entity 뭉치데이터]는 #attribute명 /attribute명 으로 범위를 지정해주면 내부 필드들을 그안에서 사용할 수 있다.-->
+    {{#article}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{title}}</td>
+            <td>{{content}}</td>
+        </tr>
+    {{/article}}
+    </tbody>
+</table>
+{{>layouts/footer}}

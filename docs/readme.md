@@ -66,7 +66,7 @@ start.spring.io
         1. post form -> controller 파라미터 속 dto객체를 지정하면, 거기다가 받아준다는 뜻
         2. 즉, 뷰 페이지의 post form에 맞게 dto을 만들고 -> 받는 컨트롤러의 파라미터로 넣어준다.
 
-6. entity, repository생성후 데이터 저장 실습
+6. jpa로 (entity, repository생성 후) 데이터 저장 실습
     1. form (name) -> dto -> controller 파라미터 -> `database`까지 저장하러 가보자.
     2. 우리는 java를 쓰고, DB는 java를 모르는데, 어떻게 java로 db에게 명령을 할까?
         1. jpa : server(java)의 명령을 -> db가 java를 이해하도록 도와줌.
@@ -125,15 +125,50 @@ start.spring.io
         2. controller 속 println 리팩토링
             1. @Slf4j -> log.info(); // 출력위치도 같이 나온다.
 
+9. jpa로 데이터 조회
+    - 복습: /new -> 제출된 form 데이터 ->  (dto)  -> /create -> dto.toEntity() -> (Article) -> repository.save()
+    - 데이터 조회의 흐름
+        1. 브라우저의 `url로 조회 요청` ex> /articles/1
+            - /new에서 post `Form(데이터)으로  생성 요청`이 아닌 `url로 조회 요청`이 다르네!
+        2. controller는 `조회요청 url`을 받는다.
+            - (데이터가 담긴 form이 아니라 dto로 안받는다?!)
+        3. repository에게 `url 속 정보`만 받는다
+            - create시에는 dto -> toEntity(Article)을 repository에게 .save( ) 메세지로 전달
+            - 조회는 db로 갈때까지 id 등 정보만 가져가고 dto, entity없이 db까지 간다?!
+        4. db는 reposotiry가 Entity로 응답해준다.
+            - repository는 무조건 entity로 들어갔다가 entity로 나온다. (생성시 id null인 entity, 응답은 db에서 부여된 id를 가진 entity)
+        5. post인 create와 달리 entity -> model -> view템플릿으로 전달까지 됨.
+    - 자세한 흐름
+        - /new(get, form -> post) -> /create -> db에 생성된 후 응답entity를 log찍어 확인했지만, 이제 웹페이지로 확인할 수 있게 하자
+
+        1. post route는 form으로 post를 보내기 위해 `get route + form을 가진 view페이지가 준비물`로 필요했었다
+            - 하지만, `조회는 view나 route없이 브라우저url로만 요청`을 보낸다.
+            - 크롬을 통해 `localhost/8080/aricles/1`로 `url로 조회요청`을 보낸 뒤, 받아줄 get route를 controller에 작성해보자.
+        2. dto(xxxForm)가 없으므로 메서드 파라미터에  `url조회요청 속 가변변수 {id}`를 Long타입으로 받아줄 어노테이션을 적어줘야한다.
+            - `@PathVariable Long id`
+        3. 실제 url조회요청을 받아서 id를 롬복 log.info()로 찍어보기
+        4. **이제 id를 가지고 데이터를 조회하는 3가지 과정이 남았다.**
+            1. id로 데이터를 가져오기 : repository.findById( id ) -> repository는 entity로 응답(create시에는entity로 메세지)
+            2. 가져온 데이터(entity)를 model에 등록하기 -> 파라미터에서 Model model로 받고, add만 해주면 알아서 뷰템플릿으로 전달된다.
+            3. 보여줄 view템플릿 controller return 설정해놓고 -> 생성하러 가기: atricles/show.mustache 생성 -> bootstrap table 코드 복붙
+                - table은 th+tr/ tbody+tr만 남긴 뒤, model이 자동으로 뿌려주는 [entity 뭉치데이터]를 {{#attribute명}} 담긴데이터의 내부 필드들 쓰기
+                  {{/attribute명}}가 가능하다.
+                - 모델에 등록된 데이터는 class단위(entity)로 넣고, `# -> / attribute명`을 통해서 불러와 내부 필드들을 사용하자.
+                - 쓰고 있는 데이터 h2는 휘발성 db기 때문에 서버 재시작시 사라진다 -> 새로 등록부터 url조회요청한다.
+
 ### my 큰틀
 
 1. controller -> GET 메인 뷰 페이즈 -> 레이아웃 ->create(post)요청을 위한 화면 GET /new route + /new form 뷰 페이지 -> create POST용 /create
    route -> 전달dto -> entity, repository.save()
    h2에 저장후 응답entity 찍어서 확인
     - 1~6
-2. /create saveByInsert문까지만 하고
+2. (post의 준비물이 GET /new -> form)-> /create -> save() -> db 저장후 응답entity log.info()찍어보기
     1. application.properties에서 웹콘솔 h2 접근설정 후 접속 `db에서 데이터` 확인
     2. build.gradle에 `롬복` 라이브러리 추가 후 dto,entity 속 `생성자,toString` / controller 속 `println` 리팩토링
+
     - 7~8
-3. 
+3. read는 url조회요청with가변id -> /도메인s/{id} -> findById() ->  응다entity -> model에 담기 -> show 뷰템플릿 + 부트스트랩 table에 찍어보기
+    - dto -> entity없이 `id만으로 repository로 db 데이터 조회`
+    - 응답할 데이터가 db에 없는 경우 -> Optional<Entity> or .orElse(null);
+    - 9~
    
