@@ -5,14 +5,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-//8-2. 롬복 애노테이션으로 필드받는 생성자/toString 코드 대체
 @AllArgsConstructor
 @NoArgsConstructor // 파라미터가 없는 default 생성자
 @ToString
 @Entity
+@Getter  // 11-3
 public class Article {
 
     @Id
@@ -24,12 +25,4 @@ public class Article {
 
     @Column
     private String content;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(final Long id) {
-        this.id = id;
-    }
 }

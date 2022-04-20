@@ -1,0 +1,25 @@
+{{>layouts/header}}
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Title</th>
+        <th scope="col">Content</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!--  article 객체 -> 객체list인 articlesList 알아서 반복된다.  -->
+    {{#articleList}}
+        <tr>
+            <td>{{id}}</td>
+            <!--11-4 반복되는 개별데이터의 글제목에 개별조회 show링크달기-->
+            <td><a href="/articles/{{id}}">{{title}}</a></td>
+            <td>{{content}}</td>
+        </tr>
+    {{/articleList}}
+    </tbody>
+</table>
+
+<!--11-1. index -> new -->
+<a href="/articles/new">New Articles</a>
+{{>layouts/footer}}
