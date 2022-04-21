@@ -182,7 +182,7 @@ start.spring.io
 
     - 모든 데이터 조회하는 `/domains`에 접속해도, 현재는 휘발생 db를 쓰고 있기 때문에, 데이터가 없다 -> 껏다 킬때마다 데이어 추가! -> `/domains/new`
 
-11. 링크와 리다이렉트
+11. 화면에서 요청link(a/form)과 post에서 redirect걸기
     - 보통 웹게시판의 구조
         1. index(목록페이지(모든 조회), R)
             - show(상세페이지(개별 조회), R)
@@ -244,8 +244,72 @@ start.spring.io
             </tr>
            ```
             - **/domain/{id} 가변의 개별데이터 조회는,  `개별데이터가 반복되는 전체 데이터 조회 index에서 1개 개별데이터의 요소`에서 a태그로 걸어준.**
-                - my) `index(전체데이터조회)`에서 반복문 html + 필드데이터들 뿌려주는 순간, 그 요소중 1개에 a태그가 걸려 -> `show(개별 데이터 조회)`로 이어진다는 것을 생각해보자.  
-        6. ㅇㅇㅇ
+                - my) `index(전체데이터조회)`에서 반복문 html + 필드데이터들 뿌려주는 순간, 그 요소중 1개에 a태그가 걸려 -> `show(개별 데이터 조회)`로 이어진다는 것을
+                  생각해보자.
+
+12. 수정1) edit form화면 만들기(개별조회데이터를 채운, post Update 준비용 get)
+    1. `show -> edit` (개별id조회 후 Update POST 준비용 form 화면) GET 요청 link 만들기
+       ![image-20220421211625579](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220421211625579.png)
+        1. **edit는 show(`/domains/{id}`)의 개별 조회상태에서, {id}에 대한 데이터들을 들고 있는 상태에서 post(update) 준비용 form 화면 GET으로
+           가므로 `/domains/{id} + /edit`의 url을 가진다.**
+        2. `/domains/{id}/edit` -> Repo.findById(id) -> Entity -> model(Entity)에 등록
+    2. 실제 과정
+        1. 개별 조회인 `show`(show.mustache)에서 -> `edit`(**update(post) 준비를 위한 `개별조회된 form화면`**)로 요청link(a태그) 추가하기
+            - **my) 개별조회 상태는 url(header?)에서 {id}를 들고 있는 상태며, `show(개별조회)이후로 계속 진행`한다면, `계속 개별조회{id}를 url(header)속에 보관`하고
+              있어야한다.
+        2. 개별조회에서 이어지는 link는 url도 `/domains/{id}`도 이어지도록 + `/이어지는 route`로 해야한다.
+
+        - `요청link 속 url`에서도 개별조회 부분(`/domains/{id}`를 유지한체 이어진다.)
+            - `/domains/{id}` 개별 조회된 상태 유지 + `/edit` 수정form화면으로 가기 = `/domains/{id}/edit` 요청
+        - **show(개별조회)상태에서 `#article`  id, title, content  `/aritcle` 이외의 범위에서 article의 id를 한번더
+          쓰려면, `{{articles.id}}`형태로 첨부터 부르면 된다.**
+            ```html
+            <table class="table">
+            <thead>
+            <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Title</th>
+            <th scope="col">Content</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#article}}
+            <tr>
+            <td>{{id}}</td>
+            <td>{{title}}</td>
+            <td>{{content}}</td>
+            </tr>
+            {{/article}}
+            </tbody>
+            </table>
+
+            <a href="/articles/{{article.id}}/edit">Edit</a>
+            <a href="/articles">Go to Article List</a>
+            ```
+        - **a태그에 boostrap class만 `btn btn-primary` 추가해줘도 버튼처럼 모양이 변한다.**
+            ```html
+            <a href="/articles/{{article.id}}/edit" class="btn btn-primary">Edit</a>
+            <a href="/articles">Go to Article List</a>
+            ```
+          ![image-20220421215347514](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220421215347514.png)
+
+        3. 요청링크`/articles/{{article.id}}/edit`에 따른 controller에서 route개발
+            1. 기본적으로 개별조회한 상태에서 Update POST를 날릴 준비하는 개별조회 데이터를 가진 form화면(GET)이다.
+                - url로 이어지는 개별조회id -> controller에서 findById로 개별조회 -> `개별조회 데이터 + view` 로 이어진다.
+            2. **`edit`란 사실 `수정준비용 화면`**으로 개별조회id를 url으로부터 받아와 1) `수정할 데이터를 DB에서 조회`후 -> 2) `form에 채운 화면`을 뿌려주는 것
+                1. `수정할 데이터 DB에서 조회`해야한다 `url속 개별조회id` -> `repo.findById`로 db에서 수정대상이 되는 데이터를 꺼내온다.
+                2. controller에서  "/articles/{id}/edit" 매핑 -> return "articles/edit"로 설정 -> edit.mustache 생성
+        4. 수정form(edit.mustache) 작성하기
+            1. 생성form(new.mustache) 복붙해서 수정form 작성하기
+            2. 수정form 의 action을 비워두기(controller에서 POST route 나중에 작성할 때)
+            3. back버튼의 주소 수정하기: show -> edit 상태이므로 **`edit -> show`(back) 의 url 수정해주기**
+                - 물고있는 개별조회id를 통해 -> 개별조회(/articles/{id})로 back하도록 개별조회된 데이터 articles에서 {{article.id}}로 박아준다.
+            4. 수정form의 입력태그들(input, textarea)에 `value=""`속성을 통해 개별조회된 데이터로 form을 채워준다.
+                - `<input type="text" class="form-control" name="title" value="{{article.title}}">`
+                - `<textarea rows="3" class="form-control" name="content">{{article.content}}</textarea>`는 text값에 바로
+            5. back버튼에 article.id / input 등에 articles.title -> 템플릿엔진 영역을 form 위아래로 감싸서 article. 제거해주기
+
+13.
 
 ### my 큰틀
 
@@ -277,13 +341,24 @@ start.spring.io
 
 4. `/new`(new.mustache) -> `/create` -> `/{id}`(show.mustache) ->`/`(index.mustache)이 완성되었으면, **index를 시작으로 한 요청 link
    연결고리를 만들어야한다.**
-    1. index -> new (New domain)  + new -> index (Back)
-    2. new -> /create post (redirect) -> show + show -> index(Go to Domain List)
+    1. `index -> new` (New domain)  + `new -> index`(Back)
+    2. `new -> /create post (redirect) -> show` + `show -> index`(Go to Domain List)
         - index에서 왔으면 `back` / 다른데서 index로 갈 거면 `Go to ` / 결국엔 index로 간다.
-    3. index -> show (반복되는 개별데이터 속 1개 요소에 a태그)
+    3. `index -> show`(반복되는 개별데이터들(index) 속 1개 요소에 a태그)
         - **/domain/{id} 가변의 개별데이터 조회는,  `개별데이터가 반복되는 전체 데이터 조회 index에서 1개 개별데이터의 요소`에서 a태그로 걸어준다.**
-    - 11~
-   
+
+    - 11
+
+5. edit의 2단계 : index -> new(create준비용 form화면) or show(개별조회)의 link까지 완료된 상태에서
+    1. edit1: show -> **edit link With 개별조회id -> `개별조회 데이터를 채운 Update(POST) 준비용 form 화면(GET) 작성`하기**
+        1. **`show -> edit`를 요청link `/{id}/edit (개별조회+post용form화면)` 추가 시작한다.**
+            - `show -> edit`로 `요청link` 추가: 개별조회에서 이어지는 link는 url도 `/domains/{id}`도 이어지도록 + `/이어지는작업`로 해야한다.
+            - **my) 이제부터는 controller -> 출발이 아니라 `직전view에서 요청link 추가` -> controller -> 작업 -> view 설정후 생성**으로 이어진다.
+            - a태그에 boostrap `btn btn-primary` class만 추가해줘도 바로 버튼모양이 나온다.
+            - 웹에서 **`edit`란 사실 `수정준비용 화면`**으로 개별조회id를 url으로부터 받아와 1) `수정할 데이터를 DB에서 조회`후 -> 2) `form에 채운 화면`을 뿌려주는 것
+        2. controller에서  "/articles/{article.id}/edit" 매핑 -> edit.mustache (데이터 채워진 form) 생성
+        3. **`수정form(edit.mustache)`은 생성form(new.mustache)와 닮아있다 -> 복붙해서 만든다.**
+            - 생성form 복사 -> action 및 back 링크 url 수정 (edit -> show개별조회) -> form에 value속성 등으로 form채우기 등   
 
 
 

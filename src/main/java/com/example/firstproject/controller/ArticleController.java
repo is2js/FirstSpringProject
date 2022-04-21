@@ -67,4 +67,27 @@ public class ArticleController {
         return "articles/index";
     }
     // ---------read-----------------------------------------
+
+    // ---------3. edit-----------------------------------------
+    // 12-2. show(개별조회) -> 이어진 -> edit 의 controller 개발  by /articles/{{article.id}}/edit
+    //       - 개별조회에서부터 context가 이어지면, 화면조회도 아닌, post로 데이터를 가지고 오는 것도 아닌, url에서 id를 가지고 온다.
+    //
+    @GetMapping("/articles/{id}/edit")
+    // 12-2-1. 템플렛엔진의 요청url에서 /articles/{{article.id}}/edit 에서 route는 {{}} 대신 -> {}로 일단 바꿔준다.
+    // 12-2-2. route mapping method를 edit()로 작성하자. 템플릿엔진이라면 항상  public String이 응답이니, return "";로 먼저 작성해두자.
+    //public String edit() {}
+    public String edit(@PathVariable Long id, Model model) {
+        //12-3. 웹에서 `edit`란 수정준비용 화면으로 개별조회id를 url으로부터 받아와 1) `수정할 데이터를 DB에서 조회`후 -> 2) `form에 채운 화면`을 뿌려주는 것
+        //12-3-1. 수정할 데이터를 db에서 꺼내오면 response Id Entity
+        final Article articleEntity = articleRepository.findById(id).orElse(null);
+
+        //12-3-2. 웹에서 수정이란? db에서 조회된 데이터를 채운 form화면을 뿌려주는 것
+        // -> model에 데이터를 넣어주면 됨.
+        model.addAttribute("article", articleEntity);
+
+        //12-2-3.
+        return "articles/edit";
+    }
+    // ---------edit-----------------------------------------
+
 }
