@@ -69,25 +69,49 @@ public class ArticleController {
     // ---------read-----------------------------------------
 
     // ---------3. edit-----------------------------------------
-    // 12-2. show(개별조회) -> 이어진 -> edit 의 controller 개발  by /articles/{{article.id}}/edit
-    //       - 개별조회에서부터 context가 이어지면, 화면조회도 아닌, post로 데이터를 가지고 오는 것도 아닌, url에서 id를 가지고 온다.
-    //
     @GetMapping("/articles/{id}/edit")
-    // 12-2-1. 템플렛엔진의 요청url에서 /articles/{{article.id}}/edit 에서 route는 {{}} 대신 -> {}로 일단 바꿔준다.
-    // 12-2-2. route mapping method를 edit()로 작성하자. 템플릿엔진이라면 항상  public String이 응답이니, return "";로 먼저 작성해두자.
-    //public String edit() {}
     public String edit(@PathVariable Long id, Model model) {
-        //12-3. 웹에서 `edit`란 수정준비용 화면으로 개별조회id를 url으로부터 받아와 1) `수정할 데이터를 DB에서 조회`후 -> 2) `form에 채운 화면`을 뿌려주는 것
-        //12-3-1. 수정할 데이터를 db에서 꺼내오면 response Id Entity
         final Article articleEntity = articleRepository.findById(id).orElse(null);
 
-        //12-3-2. 웹에서 수정이란? db에서 조회된 데이터를 채운 form화면을 뿌려주는 것
-        // -> model에 데이터를 넣어주면 됨.
         model.addAttribute("article", articleEntity);
 
-        //12-2-3.
         return "articles/edit";
     }
-    // ---------edit-----------------------------------------
+
+    //13-2. @PatchMaping대신 임시로 PostMapping으로 한다. form태그 때문
+    //   + post form데이터는 Dto-ArticleForm form을 파라미터로 받는다.
+    //       -> 만약 @RestController라면, @RequestBody로? -> 이것도 객체(dto)로 받을 수 있는 듯하다.
+    @PostMapping("/articles/update")
+    //13-3. 생성form으로 만든 수정form이지만, id도 같이보냄에 따라, dto도 id필드를 추가해주자.
+    public String update(ArticleForm form) {
+        // post되는 데이터(dto)는 일단 한번 찍어준다.
+        log.info(form.toString());
+
+        //13-4
+        //13-4-1) dto toEntity
+        final Article articleEntity = form.toEntity();
+        log.info(articleEntity.toString());
+
+        //13-4-2) entity save db
+        // -> id없이 save시도하여 db에서 id가 자동배정되는 create와 달리,  -> update는 [id] + [수정완료된 1row 데이터]를 가진 dto to Entity로 가지고 있다.
+        // 1) `[id]로 찾아서 존재하는 데이터인지` db에 물어보고, db에 해당 데이터가 없으면 null을 받는다.
+        final Article target = articleRepository.findById(articleEntity.getId()).orElse(null);
+        // 2) if null이 아닌 경우 == 데이터가 있는 경우에만, **해당id의 데이터 [수정완료된 1row데이터]로 update**를 통해 db에 저장한다.
+        if (target != null) {
+            articleRepository.save(articleEntity);
+        }
+        // 3) 수정완료되었으면, 실제 db(h2)에서 수정된 데이터를 확인해본다.
+
+        //13-4-3) 개별조회id 중 edit은 개별조회show로 redirect시켜줘야한다.
+        return "redirect:/articles/" + articleEntity.getId();
+        //13-5 실제 db에서도 update 쳐보기
+//        UPDATE article
+//        SET
+//            title = '가나다라',
+//            content = 'AAAA'
+//        WHERE
+//            id = 1;
+    }
+    // --------------------------------------------------
 
 }

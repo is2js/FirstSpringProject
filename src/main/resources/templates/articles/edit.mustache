@@ -1,22 +1,20 @@
 {{>layouts/header}}
 
-<!--12-4. 생성form(new)를 복붙해서 수정하는 수정form(edit)-->
 {{#article}}
-    <form action="/articles/create" method="post" class="container">
-        <!--12-5. 수정form은 개별조회된 데이터가 채워져있어야한다.-->
-        <!--       채워질 공간은 input태그/textarea 이렇게 있다.-->
-        <!--       기존에는 없던 value ="" 속성으로 form에 데이터를 채워준다.-->
+    <!-- 13. action/method 변경    -->
+    <form action="/articles/update" method="post" class="container">
+        <!-- 13. -->
+        <input type="hidden" name="id" value="{{id}}">
         <div class="mb-3">
             <label class="form-label">제목</label>
-            <input type="text" class="form-control" name="title" value="{{article.title}}">
+            <input type="text" class="form-control" name="title" value="{{title}}">
         </div>
         <div class="mb-3">
             <label class="form-label">내용</label>
-            <textarea rows="3" class="form-control" name="content">{{article.content}}</textarea>
+            <textarea rows="3" class="form-control" name="content">{{content}}</textarea>
         </div>
         <button class="btn btn-primary" type="submit">Submit</button>
-        <!-- 12-4-1. show(개별조회) -> edit(개별조회+@)이므로 back도 index가 아닌 show(개별조회)로 가도록 수정 -->
-        <a href="/articles/{{article.id}}">Back</a>
+        <a href="/articles/{{id}}">Back</a>
     </form>
 {{/article}}
 

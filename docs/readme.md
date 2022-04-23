@@ -78,7 +78,7 @@ start.spring.io
                 2. springboot 제공 CrudRepository<entityT,idT> 인터페이스를 extends상속한 인터페이스로 정의한다.
                 3. copntroller에서는 인터페이스=추상체 repository를 필드값 변수로 가지되, new 구상체 초기화는 생략하고 @애노테이션으로 자동초기화시켜 springboot제공 기능을
                    가진 구상체로 자동 초기화시킨다. by `@AutoWired`
-                4. dto.toEntity한 entit객체 및 CrudRepository상속 레포지토리 (@AutoWeired로 자동구현체초기화)의 .svae( entity ) 결과값으로 나온
+                4. dto.toEntity한 entit객체 및 CrudRepository상속 레포지토리 (@AutoWeired로 자동구현체초기화)의 .save( entity ) 결과값으로 나온
                    entity를
                     1. toString()한 것을 각각 찍어보자(보내기전entity, save후 반환되는 entity 출력)
     3. front -> [dto] -> Controller -> [entity] by Repository(일꾼) -> DB 에게 전달 + 처리
@@ -308,8 +308,42 @@ start.spring.io
                 - `<input type="text" class="form-control" name="title" value="{{article.title}}">`
                 - `<textarea rows="3" class="form-control" name="content">{{article.content}}</textarea>`는 text값에 바로
             5. back버튼에 article.id / input 등에 articles.title -> 템플릿엔진 영역을 form 위아래로 감싸서 article. 제거해주기
+               ![image-20220422002249835](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220422002249835.png)
+            6. form에 input태그type="hidden"을 추가한 뒤, name="id" value="{{id}}"를 던져준다.
 
-13.
+13. 수정2) edit form -> `update` (post) `/domains/update` route 만들기 (form태그가 patch을 지원안해서 임시로 원래는.. @PatchMapping까지)
+    1. 개념 client -> server로 데이터전송은 다양한 통신규약 = protocol로 이루어진다. ex>FTP, SMTP, SSH, HTTP(웹서버 프로토콜)
+        1. http는 요청을 method로 보낸다 대표 `메서드-데이터관리기본동작` 4가지(get-read, post-create, patch/put-update, delete-delete)
+        2. CRUD - `데이터 관리 기본동작` 4가지이며, sql에서는 다양한 `쿼리문`으로 제공된다.
+            - 데이터관리 기본 동작(CRUD) - HTTP(웹서버 프로토콜) 요청 METHOD - SQL 쿼리문의 매핑
+              ![image-20220422004331642](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220422004331642.png)
+    2. edit2 수정 route : `post(create)/patch(update)`으로서, GET(화면+개별조회or개별조회유지)이 아닌 경우, url에 개별id를 들고올 필요(/domains/{id}+@
+       url) 할 필요
+       없이 `수정form에 input + hidden Type + name="id" value="{{id}}"`로 @RequestBody에서 받아쓰도록 담아던지고 ->  **바로 url은 개별조회id유지가
+       아닌  `/domains/update`로 보내면 된다.**
+       ![image-20220422002313855](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220422002313855.png)
+        1. 수정 페이지 form의 action에는 정해진 수정 route인 `/domains/update`로 던져준다. method는 post만 가능하다.(원래는 patch가 좋음)
+        2. 수정 페이지 form에 input태그type="hidden"을 추가한 뒤, name="id" value="{{id}}"를 던져준다.
+            - `<input type="hidden" name="id" value="{{id}}">`
+        3. **front에서 던져주는 데이터는 Dto로 받는데, dto에 데이터(id)가 추가되었기 때문에 -> 현재 Dto인 ArticleForm도 필드를 추가해줘야한다.**
+            - new와 달리, `개별조회 데이터를 조회해서 채운` form페이지이므로 `개별id`를 가진 상태다.
+            - **개별id 조회상태에서 `더 진입한다`면, 요청link나 폼submit시 id가 추가된다.**
+                - **생성으로 만든 수정form이 추가된다면 dto도 id필드 추가+생성자수정(롬복) + `toEntity`수정 해야한다.**
+                - 현재, `form으로 post를 보내는` create에서 `form(dto).toEntity()`가 사용되어 .save()전에 entity넘겨줄 때 사용되고 있음.
+                - 수정도, form으로 post를 보내니, form(dto).toEntity()가 호출 될 에정이다.
+                    - **post로 던져지는 데이터를 dto로 받게 되는 create/update에 대해서는 dto를 toString()으로 찍어보자~!**
+            - 참고) requestBody vs Param 객체? https://ocblog.tistory.com/49
+        4. 수정 route의 로직
+            1. view에서 넘어오는 이미 `수정된 완료된 1row 데이터(dto)` to **`Entity로 변환`**한다.
+                1. post or patch update route로는 `이미 수정 완료된 1row의 데이터`가 넘어온다 -> Entity로 바꾸고 `db에 save`만 하면 된다.
+                2. create와 달리 update는 `개별id를 가진 상태로서, dto -> entity -> entity.getId()로 개별id를 꺼내, 기존에 있는 데이터를 findById`로
+                   가져와 확인 되면, `확인된 데이터를 수정해서 save`해야한다.
+            2. id없이 `save`하여 id가 자동 배정되는 create와 달리,**`update`는 [id] + [수정완료된 1row 데이터]를 가지고 있으며**
+                1. `[id]로 찾아서 존재하는 데이터인지` db에 물어보고, db에 해당 데이터가 없으면 null을 받는다.
+                2. if null이 아닌 경우 == 데이터가 있는 경우에만, **해당id의 데이터 [수정완료된 1row데이터]로 update**를 통해 db에 저장한다.
+                3. db에 edit(update)가 완료되었는지 확인한다.
+            3. update도 POST(PATCHorPU)라 redirect + 개별조회 후 edit -> 다시 해당id개별조회로 redirect
+            4. 실제디비에서 확인 + 실제디비에서 update해보기
 
 ### my 큰틀
 
@@ -343,14 +377,27 @@ start.spring.io
    연결고리를 만들어야한다.**
     1. `index -> new` (New domain)  + `new -> index`(Back)
     2. `new -> /create post (redirect) -> show` + `show -> index`(Go to Domain List)
-        - index에서 왔으면 `back` / 다른데서 index로 갈 거면 `Go to ` / 결국엔 index로 간다.
+        - index에서 왔으면 `back` / 다른데서 index로 갈 거면 `Go to` / 결국엔 index로 간다.
     3. `index -> show`(반복되는 개별데이터들(index) 속 1개 요소에 a태그)
         - **/domain/{id} 가변의 개별데이터 조회는,  `개별데이터가 반복되는 전체 데이터 조회 index에서 1개 개별데이터의 요소`에서 a태그로 걸어준다.**
 
     - 11
 
-5. edit의 2단계 : index -> new(create준비용 form화면) or show(개별조회)의 link까지 완료된 상태에서
-    1. edit1: show -> **edit link With 개별조회id -> `개별조회 데이터를 채운 Update(POST) 준비용 form 화면(GET) 작성`하기**
+5. 대박 : `h2`테이블이 완성된 상태라면, `resources > data.sql`의 지정된 파일에 query문을 넣어두면 자동으로 실행된다(약속)
+    1. jpa는 어플리케이션이 실행되면 `@Entity에 해당하는 클래스`들을 찾아 `JPA가 자동으로 테이블을 생성`해준다.
+    2. Spring은 기본적으로 classpath에 `schema.sql 파일이 있다면 서버 시작시 자동으로 실행`한다.
+        1. jpa가 없는 상태라면, `resources > schema.sql`에서 DDL을 정의(`초기 table create`)해둔다 - 테스1
+        2. `resources > data.sql`이 DML을 정의(`초기 데이터 insert`)해둔다. 서버실행마다 초기화되는 h2 메모리 db의 경우 사용 - 홍팍1
+            - 추가설정: `resources > application.properties` 에 `spring.jpa.defer-datasource-initialization=true` 추가
+        ```sql
+        ```
+
+    - [참고1](https://xlffm3.github.io/spring%20data/spring-db-initialization/)
+    - [참고2](https://kyu9341.github.io/java/2020/04/14/java_springBootDBinit/)
+
+6. edit의 2단계 : index -> new(create준비용 form화면) or show(개별조회)의 link까지 완료된 상태에서
+    1. edit1 수정 페이지 `edit`(/domains/{id}/edit) : show -> **edit link With 개별조회id
+       -> `개별조회 데이터 조회해서 채운 Update(POST) 준비 수정 form 화면(GET) 작성`하기**
         1. **`show -> edit`를 요청link `/{id}/edit (개별조회+post용form화면)` 추가 시작한다.**
             - `show -> edit`로 `요청link` 추가: 개별조회에서 이어지는 link는 url도 `/domains/{id}`도 이어지도록 + `/이어지는작업`로 해야한다.
             - **my) 이제부터는 controller -> 출발이 아니라 `직전view에서 요청link 추가` -> controller -> 작업 -> view 설정후 생성**으로 이어진다.
@@ -358,8 +405,14 @@ start.spring.io
             - 웹에서 **`edit`란 사실 `수정준비용 화면`**으로 개별조회id를 url으로부터 받아와 1) `수정할 데이터를 DB에서 조회`후 -> 2) `form에 채운 화면`을 뿌려주는 것
         2. controller에서  "/articles/{article.id}/edit" 매핑 -> edit.mustache (데이터 채워진 form) 생성
         3. **`수정form(edit.mustache)`은 생성form(new.mustache)와 닮아있다 -> 복붙해서 만든다.**
-            - 생성form 복사 -> action 및 back 링크 url 수정 (edit -> show개별조회) -> form에 value속성 등으로 form채우기 등   
+            - 생성form 복사 -> action 및 back 링크 url 수정 (edit -> show개별조회) -> form에 value속성 등으로 form채우기 등
+    2. edit2 수정 route: 3단계로 진행
+        1. 수정form(edit)에서 + hiddentInput태그로 id를 받아 post로 데이터를 보낸다. -> Form Dto로 간다. -> dto.toString()으로 찍어보고
+           -> `dto.toEntity()로 변환`한다.(파라미터속 formDto + 변환된 entity를 각각 log.info()로 찍기)
+        2. `수정완료된 데이터를 의미하는 entity` 속 `id`를 꺼내와, db에 기존 데이터가 있는지 확인하고, 없으면 null -> `null이 아닌 경우 entity로 update`한다.
+        3. edit는 개별조회에서 온 것이다 -> 다시 개별조회로 redirect
 
+    - 12~13
 
 
 
