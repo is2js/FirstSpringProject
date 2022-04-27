@@ -344,8 +344,61 @@ start.spring.io
                 3. db에 edit(update)가 완료되었는지 확인한다.
             3. update도 POST(PATCHorPU)라 redirect + 개별조회 후 edit -> 다시 해당id개별조회로 redirect
             4. 실제디비에서 확인 + 실제디비에서 update해보기
+14. 데이터 삭제
+    1. 삭제의 3단계 + @
+        1. 개별조회show에서 삭제요청
+        2. db에서 삭제: update와 마찬가지로, findById한 뒤 notnull로 기존데이터가 있는 경우에만 삭제
+        3. index로 redirect
+        4. **삭제완료 메세지를 띄워주는 클래스: `RedirectAttributes`**
+           ![image-20220427092632139](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220427092632139.png)
+    2. RedirectAttributes는 1회성으로 사용할 데이터를 등록한다.
+       ![image-20220427092742143](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220427092742143.png)
+    3. 시작
+        1. 삭제는 개별조회show에서 시작한다. -> url에서 /articles/1,2,3 아무거나 골라서 페이지부터 일단 확인하자.
+        2. 상세페이지에 해당하는 show.mustache에서 Edit(a태그)를 복사해서 `Delete버튼을 추가`하고, href url을 `articles/id/delete`로 날려주자.
+            1. client에서 서버로 요청보낼 때 4가지 메서드: 생성(post), 조회(get), 수정(update), 삭제(delete)
+            2. **html에서는 get과 post만 보낸다.(js를 써야 update, delete도 보낸다)
+               -> `현재 delete를 get방식으로 보낸다. by A태그(GET방식)` -> 나중에 js로 바꾸면, DELETE방식응로 보낼 수 있음.**
+        3. 삭제버튼 요청을 받아줄 controller 작성
+            1. html이 지원안해줘서 GetMapping으로 받기
+            2. (1) 삭제대상을 가져온다 - 있는 것만 삭제해야함
+                - 수정도 있는 것만 해야하지만, 수정완료된 데이터dto -> 이걸로 DB업뎃 하니까, entity에서 id를 뽑아왔지만
+                - 삭제는 entity가 필요없이 id만 있으면 entity없이 삭제된다? ㄴㄴ 찾을 때 반환물이 entity이다. 없는 entity일 수 있기 때문에, 들어온 id에서 찾는다.
+                - log.info()로 찍는다.
+            3. (2) 그 대상을 삭제한다
+                - 실제 삭제여부는 실제 DB에서 확인한다.
+            4. (3) 결과페이지로 redirect한다.
+                - 개별이 삭제가 되었으니 -> 전체로 redirect한다.
+        4. 처리후 redirect될 html에 1회성 메세지 던지기 (템플릿엔진용)
+            1. 컨트롤러 파라미터에 Model model처럼 `RedirectAttributes rttr`를 추가해서 사용한다.
+                ```java
+                //14-3 그 대상을 삭제한다
+                if (target != null) {
+                articleRepository.delete(target);
+                //14-5 update나 delete처럼, id를 통해 찾고 난 뒤 -> 있으면(notNull시) 수행에 대해
+                // -> 수행될수도 있고 안될수도있으니, 수행된 경우, 1회성 flash msg를 redirect페이지로 넘기자.
+                // -> addFlashAttribute만 해주면, 알아서 redirec되는 html(index.mustache)로 날려준다.
+                rttr.addFlashAttribute("msg", "삭제가 완료되었습니다.");
+                }
+                ```
+            2. **msg로 등록된 데이터는, redirect페이지로 가는데, 공통코드인 header맨 아래에 넣어주어, 있으면 해당 메세지를 div로 띄워주자**
+                - bootstrap에서 x표시도 제공하는 `X표버튼 있는 alert창`을 `layouts/header.mustache`에 사용한다.
+               ```html
+               <!--14-6 redirect로 뭔가 db처리하고 넘어온 msg가 있다면, 출력해줘-->
+               {{#msg}}
+               <div class="alert alert-warning alert-dismissible fade show" role="alert">
+               {{msg}}
+               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+               </div>
+               {{/msg}}
+               ```
+        5. db에서 sql쿼리로 지워보기
+            ```sql
+           DELETE article
+           WHERE id = 3;
+            ```
 
-### my 큰틀
+### CRUD 완성까지 큰 틀
 
 1. controller -> GET 메인 뷰 페이즈 -> 레이아웃 ->create(post)요청을 위한 화면 GET /new route + /new form 뷰 페이지 -> create POST용 /create
    route -> 전달dto -> entity, repository.save()
@@ -397,7 +450,7 @@ start.spring.io
 
 6. edit의 2단계 : index -> new(create준비용 form화면) or show(개별조회)의 link까지 완료된 상태에서
     1. edit1 수정 페이지 `edit`(/domains/{id}/edit) : show -> **edit link With 개별조회id
-       -> `개별조회 데이터 조회해서 채운 Update(POST) 준비 수정 form 화면(GET) 작성`하기**
+       -> `개별조회 데이터 조회해서 채운, Update(POST) 준비 수정 form 화면(GET) 작성`하기**
         1. **`show -> edit`를 요청link `/{id}/edit (개별조회+post용form화면)` 추가 시작한다.**
             - `show -> edit`로 `요청link` 추가: 개별조회에서 이어지는 link는 url도 `/domains/{id}`도 이어지도록 + `/이어지는작업`로 해야한다.
             - **my) 이제부터는 controller -> 출발이 아니라 `직전view에서 요청link 추가` -> controller -> 작업 -> view 설정후 생성**으로 이어진다.
@@ -414,8 +467,18 @@ start.spring.io
 
     - 12~13
 
+7. delete와 flash msg
+    1. 개별id조회 show에서 `delete` 요청 a태그를 만든다( a태그는 GET방식으로, 추후 js로 DELETE요청해야한다)
+    2. delete controller
+        1. 삭제 대상을 가져온다 - 있는 것만 삭제해야함
+            - log.info()로 찍는다.
+        2. 그 대상을 <존재시=if !=null)삭제한다
+            - 그 대상이 있다면, 삭제한다.
+            - 그 대상이 없어서 삭제 안될 수도 있다. -> RedirectAttributes 를 이용해서 flash msg를 넘길 수 있다.
+        3. 결과페이지로 redirect한다.
+    3. flash msg는 html(mustache)에서 받는데, 공통코드인 header의 맨아래에 버튼달린 alert창을 넣어주면 된다.
 
-
+    - 14
 
 
 

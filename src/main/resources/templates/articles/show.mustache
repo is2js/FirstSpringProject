@@ -17,7 +17,8 @@
     {{/article}}
     </tbody>
 </table>
-<!--12-1. show -> edit로 이어지는 요청link -->
 <a href="/articles/{{article.id}}/edit" class="btn btn-primary">Edit</a>
+<!--14-1. html에서 delete를 제공안해주기 때문에, get방식의 a태그로 요청한다.-->
+<a href="/articles/{{article.id}}/delete" class="btn btn-danger">Delete</a>
 <a href="/articles">Go to Article List</a>
 {{>layouts/footer}}
