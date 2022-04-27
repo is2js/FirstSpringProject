@@ -1,6 +1,6 @@
 package com.example.firstproject.controller;
 
-import com.example.firstproject.dto.ArticleForm;
+import com.example.firstproject.dto.ArticleDto;
 import com.example.firstproject.entity.Article;
 import com.example.firstproject.repository.ArticleRepository;
 import java.util.List;
@@ -27,7 +27,7 @@ public class ArticleController {
     }
 
     @PostMapping("/articles/create")
-    public String createArticleForm(ArticleForm form) {
+    public String createArticleForm(ArticleDto form) {
         log.info(form.toString());
 
         Article article = form.toEntity();
@@ -74,7 +74,7 @@ public class ArticleController {
     }
 
     @PostMapping("/articles/update")
-    public String update(ArticleForm form) {
+    public String update(ArticleDto form) {
         log.info(form.toString());
 
         final Article articleEntity = form.toEntity();

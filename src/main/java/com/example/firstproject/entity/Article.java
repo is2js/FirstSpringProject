@@ -28,4 +28,17 @@ public class Article {
 
     @Column
     private String content;
+
+    public void patch(final Article article) {
+        //17-9. 수정안되서 requestbody에 안들어간 칼럼은 null로 차있다. -> patch로 붙여준다는 것은
+        // -> 각 칼럼들에 대해 != null로 존재하는 칼럼만 붙여준다(갱신)는 뜻이다.
+        // -> 같은 entity객체내 비교라서, 필드를 편하게 꺼내서 확인하면된다.
+        if (article.title != null) {
+            // 데이터가 존재한다면, target Entity에 넣어줘 없음 말고...
+            this.title = article.title;
+        }
+        if (article.content != null) {
+            this.content = article.content;
+        }
+    }
 }

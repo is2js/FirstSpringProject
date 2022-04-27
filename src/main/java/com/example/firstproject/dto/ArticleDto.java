@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @AllArgsConstructor
 @ToString
-public class ArticleForm {
+public class ArticleDto {
 
     private Long id;
     private String title;
