@@ -18,8 +18,6 @@ import lombok.ToString;
 public class Article {
 
     @Id
-    //@GeneratedValue // 1,2,3, ...  자동생성 어노테이션, 외부에서는 null을 주입해주면 됨.
-    //15-3. DB에 이미 생성된 데이터를 고려해서 DB가 번호 +1씩 번호부여하도록 전략변경
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -30,11 +28,7 @@ public class Article {
     private String content;
 
     public void patch(final Article article) {
-        //17-9. 수정안되서 requestbody에 안들어간 칼럼은 null로 차있다. -> patch로 붙여준다는 것은
-        // -> 각 칼럼들에 대해 != null로 존재하는 칼럼만 붙여준다(갱신)는 뜻이다.
-        // -> 같은 entity객체내 비교라서, 필드를 편하게 꺼내서 확인하면된다.
         if (article.title != null) {
-            // 데이터가 존재한다면, target Entity에 넣어줘 없음 말고...
             this.title = article.title;
         }
         if (article.content != null) {

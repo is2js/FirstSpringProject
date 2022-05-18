@@ -30,7 +30,7 @@ start.spring.io
         - `spring.datasource.generate-unique-name=false`
         - `spring.datasource.url=jdbc:h2:mem:testdb`
 
-### 테스트
+### 서비스 테스트
 
 - 테스트를 위한 비용(매번 브라우저 -> 요청 -> `서비스` -> 응답 -> db도 확인)을 최소화할 수 있다.
 - 과정
@@ -69,7 +69,7 @@ start.spring.io
         2. 전체테스트를 돌리다보니 발생한, 실제값 `Actual`을 확인한다.
     6. 조회를 제외한 db관련 service들 -> **조회보다 먼저 실행되면 에러 발생** 
          - **db변경 service method 테스트시 @Test에 추가로 `@Tranactional`달아주기
-    
+         
 ### 댓글 모음
 
 

@@ -32,9 +32,15 @@ class ArticleServiceTest {
         // --> (1) 묶을 땐, 연산(add/remove)가능한 Arrays.asList()로 묶고  <-> 불변List.of()
         // --> (2) 연결을 끊기 위해선 new ArrayList<>() 로 한번더 씌워주자.
         // ---> cf) 연산불가능+끊기는 List.copyOf() ?
-        // --> 연산(add/remove)가능한 list는 new로 만들자. 그외에는 List.of() ?
+        // --> 연산(add/remove)가능한 끊기 list는 new로 만들자. 그외에는 List.of() ?
         //new ArrayList<Article>(Arrays.asList(a,b,c));
         final List<Article> expected = new ArrayList<>(Arrays.asList(a, b, c));
+
+        //정리
+        // (1) 묶기 -> 가변(활용가능) Arrays.asList() vs 불변(조회용) List.of()
+        // (2) 묶은 것을 복사해서 보내기 -> new ArraysList<>( (1)묶음 )
+        // (3) 불변으로 끊어서 보내기(조회용) -> List.copyOf() or Collections.unmodifiable()
+
 
         //1. 실제when
         final List<Article> articles = articleService.index();
@@ -43,31 +49,6 @@ class ArticleServiceTest {
         // -> 2 list가 같은 것을 toString()으로???
         assertEquals(expected.toString(), articles.toString());
     }
-
-//    @DisplayName("")
-//    @Test
-//    void index_fail() {
-//        //2. 예상given
-//        final Article a = new Article(1L, "가가가가", "1111");
-//        final Article b = new Article(2L, "나나나나", "2222");
-//        // 일부러 틀리게 id를 4번으로 주지
-////        final Article c = new Article(3L, "다다다다", "3333");
-//        final Article c = new Article(4L, "다다다다", "3333");
-//        final List<Article> expected = new ArrayList<>(Arrays.asList(a, b, c));
-//
-//        //1. 실제when
-//        final List<Article> articles = articleService.index();
-//
-//        //3. 비교then
-//        assertEquals(expected.toString(), articles.toString());
-//
-//        //4. list vs list를 .toString()으로 비교시 실패하면?
-//        // -> 대문자 Expected(expected와 동일한 값, 만들어준 정답 값) vs Actual(실제 값)
-////        expected: <[Article(id=1, title=가가가가, content=1111), Article(id=2, title=나나나나, content=2222), Article(id=4, title=다다다다, content=3333)]> but was: <[Article(id=1, title=가가가가, content=1111), Article(id=2, title=나나나나, content=2222), Article(id=3, title=다다다다, content=3333)]>
-////        Expected :[Article(id=1, title=가가가가, content=1111), Article(id=2, title=나나나나, content=2222), Article(id=4, title=다다다다, content=3333)]
-////        Actual   :[Article(id=1, title=가가가가, content=1111), Article(id=2, title=나나나나, content=2222), Article(id=3, title=다다다다, content=3333)]
-//    }
-
 
     @DisplayName("")
     @Test

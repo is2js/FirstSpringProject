@@ -26,13 +26,11 @@ public class ArticleApiController {
     //GET
     @GetMapping("/api/articles")
     public List<Article> index() {
-//        return articleRepository.findAll();
         return articleService.index();
     }
 
     @GetMapping("/api/articles/{id}")
     public Article show(@PathVariable Long id) {
-//        return articleRepository.findById(id).orElse(null);
         return articleService.show(id);
     }
 
@@ -40,11 +38,7 @@ public class ArticleApiController {
     @PostMapping("/api/articles")
     public ResponseEntity<Article> create(@RequestBody ArticleDto dto) {
         Article created = articleService.create(dto);
-        //18-3?. service가 내부 업무들을 트랜잭션단위로 순서총괄한 뒤 응답하는 값은
-        // (1) 값이 단일 entity -> null가능성이 있다.
-        // (2) 값이 복수 list -> size = 0일 가능성이 있다.
-        //-> 거기에 따라 다르게 응답해준다. 생성처리후 생성된 데이터가 왔다? good : bad
-        //return (create != null) ? good :bad;
+
         return (created != null) ?
             ResponseEntity.status(HttpStatus.OK).body(created) :
             ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -54,14 +48,8 @@ public class ArticleApiController {
     @PatchMapping("/api/articles/{id}")
     public ResponseEntity<Article> update(@PathVariable Long id,
                                           @RequestBody ArticleDto dto) {
-
-        // 웨이터controller는 는 service(쉐프)에게 파라미터로 받은 것들을(`id`, `dto`)를 그대로 건네준다.
-        // -> 주방장이 updated된 entity를 받아와준다고 믿는다.
         Article updated = articleService.update(id, dto);
-        // -> 조회(read) or 받아온 데이터(update/ )를 바탕으로 good/bad 응답을 판단해서 보내준다...
-        // controller에서 그정도 판단은 한다.. 널이나 아니냐
-        // -> 원래는 예외처리로 해야지만, 지금은 null로 판단한다.
-        // --> null이 아니면 좋은 요청으로 return with data / null이면 나쁜요청을 ...
+
         return (updated != null) ?
             ResponseEntity.status(HttpStatus.OK).body(updated) :
             ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -70,19 +58,8 @@ public class ArticleApiController {
     //DELETE
     @DeleteMapping("/api/articles/{id}")
     public ResponseEntity<Article> delete(@PathVariable Long id) {
-//        //(1) 대상 조회
-//        final Article target = articleRepository.findById(id).orElse(null);
-//        //(2) 조회후 처리전, 잘못된요청 검증
-//        if (target == null) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-//        }
-//        //(3) 대상 삭제(처리)
-//        articleRepository.delete(target);
-        //return ResponseEntity.status(HttpStatus.OK).build();
-
         Article deleted = articleService.delete(id);
-        // 웨이터는 일단, 쉐프가 준 자료를 null기준으로 good/bad 응답을 갈라서 응답해준다.
-        // -> 삭제성공시는, 삭제된 데이터가 아니라 200번대의 NO_CONTENT(204)를 응답해주면 된다.
+
         return (deleted != null) ?
             ResponseEntity.status(HttpStatus.NO_CONTENT).build() :
             ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

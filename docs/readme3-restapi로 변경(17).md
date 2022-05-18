@@ -167,13 +167,15 @@ start.spring.io
 2. 템플릿엔진이 순서와 조금 다르게 `GET(조회) 2개`부터 처리하여 -> POST -> PATCH -> DELETE 순으로 완성하자
    ![image-20220427215505571](https://raw.githubusercontent.com/is2js/screenshots/main/image-20220427215505571.png)
 3. **조회후 처리하는 PATCH/DELETE**는 `조회 -> 잘못된요청 -> 처리`에서 **조회후 if잘못된 요청일 때, `BAD_REQUEST`인 early 400 return해줘야한다.**
+    - read: 그냥 Entity or List<Entity>로 응답하기
+    - create: DB가 배정할 id를 미리 들고 오는 경우
     - update(2): DB에 없는 데이터(target == null) || PathVariable의 요청URL속 id <-> 요청body에있는 json속 id가 다른 경우
     - delete: DB에 없는 데이터(target == null)
         - 400: return `ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);` / update, delete 잘못된 요청시
         - 200: return `ResponseEntity.status(HttpStatus.OK).body(updated);` / update성공시 .body()에 데이터 싣어서 OK
-        - 200: return `ResponseEntity.status(HttpStatus.OK).build();` / delete 성공시 데이터 없이 OK
-4. update시 수정될 칼럼데이터만 json으로 보내도 그 부분만 바뀌도록 target entity(db에서 id로 꺼낸)에 데이터 있는것 만 `patch`해주도록 entity내 patch메서드 만들기
-5. **잘못된 요청 정리 (create는 18강에서 등장)**
+        - 204: return `ResponseEntity.status(HttpStatus.NO_CONTENT).build();` / delete 성공시 데이터 없이 .build() NO_CONTENT
+5. update시 수정될 칼럼데이터만 json으로 보내도 그 부분만 바뀌도록 target entity(db에서 id로 꺼낸)에 데이터 있는것 만 `patch`해주도록 entity내 patch메서드 만들기
+6. **잘못된 요청 정리 (create는 18강에서 등장)**
     1. POST(CREATE): `db가 생성해주는 id를 다른데이터json가 포함하여 request`했을 때 -> crated에 null을 담아-> badrequest
     2. PATCH(UPDATE): 조회->처리 사이에 `target이 없는(조회 안되는) id를 조회`했거나 `Path속 개별조회id <-> Json속 수정을 원하는 id`가 다를 때
     3. DELETE(DELETE): 조회->처리 사이에 `target이 없는(조회 안되는) id를 조회`
