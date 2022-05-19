@@ -1,0 +1,79 @@
+<!--23-1. 영역을 잡되, boostrap card로 잡은 뒤, 그 내부에 form을 만든다.-->
+<div id="comments-new" class="card m-2">
+    <div class="card-body">
+        <!-- boostrap card-shape form (no action/method for js)  -->
+        <form>
+
+            <!--input nickname-->
+            <div class="mb-3">
+                <label for="new-comment-nickname" class="form-label">nickname</label>
+                <input type="text" id="new-comment-nickname" class="form-control form-control-sm">
+            </div>
+
+            <!--body-->
+            <div class="mb-3">
+                <label for="new-comment-body" class="form-label">body</label>
+                <textarea id="new-comment-body"
+                          rows="3"
+                          class="form-control form-control-sm"></textarea>
+            </div>
+
+            <!-- hidden input (no label)-->
+            <input type="hidden" id="new-comment-article-id" value="{{article.id}}">
+
+            <!-- button -->
+            <button id="comment-create-btn" class="btn btn-outline-primary btn-sm" type="button">댓글작성</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 23-2. script안쪽에 블럭을 잡아준다.
+    {
+        //23-3. #id + querySelector로 form 속 [button태그를 변수화]해서 가져온다.
+        // - let은 변수, const는 상수이며, 변수명은 cameCase로 짓는다.
+        const commentCreateBtn = document.querySelector("#comment-create-btn");
+
+        //23-4. 버튼 "클릭"을 감지할 수 있게 addEventListener를 버튼 변수에 달아주기
+        //     클릭 을 event로서 감지하면 -> 수행할 메서드도 적어줘야한다.
+        commentCreateBtn.addEventListener("click", function () {
+            console.log("버튼이 클릭되었습니다.")
+
+            //23-5. json과 달리 javascript객체는 key값에 따옴표가 없다!!
+            // - js에서는 camelCase를 쓰지만, api로 데이터 던질 땐 db처럼 snake_case를 많이 쓰니 잘 알아두자.
+            // - 이로인해, db처럼 json도 오지만, java-dto에선 camelCase니, @JsonProperty로 명시해줬었다.
+            const comment = {
+                // nickname: "???",
+                nickname: document.querySelector("#new-comment-nickname").value,
+                // body: "???",
+                body: document.querySelector("#new-comment-body").value,
+                // article_id: "???"
+                article_id: document.querySelector("#new-comment-article-id").value
+            }
+            console.log(comment);
+            //23-6. fetch(url, {}) 을 통해 talendAPI처럼 restAPI에 요청하기
+            // -> fetch는 url과 {통신정보가 담긴 js객체 block} 2개를 받으니 url부터 작성해줘야한다.
+            // (1) 생성 요청 url
+            // -> js객체는 .으로 찍어서 바로 필드를 쓸 수 있다.
+            const url = "/api/articles/" + comment.article_id + "/comments";
+            // (2) fetch 통신정보 js객체 block{} 작성 with url
+            fetch(url, {
+                // {}은 js객체라 key에 따옴표가 없다.
+                method: "post",                 // HTTP 요청 method
+                body: JSON.stringify(comment),  // js객체 to json을 요청body로
+                headers: {
+                    "Content-Type": "application/json" // header가 아니라 headers이며, string을 key로 가지는 객체로 정보전달(not js객체)
+                }
+                //});
+                //23-7. restAPI에서 오는 응답을 처리해주는 로직을  .then(response => { 실행로직 })을 추가한다.
+                // response 가 왔다고 치고 람다식을 => {} 로 작성해준다.
+            }).then(response => {
+                // (1) http 응답 코드에 따른 삼항연산자로 ok vs 그외의 경우를 (response.ok? "okmsg" : "badmsg" )로 출력할 메세지 작성 후 alert
+                const msg = (response.ok) ? "댓글이 등록되었습니다." : "댓글 등록 실패!";
+                alert(msg);
+                // (2) 생성 성공or실패 상관없이 [생성요청후 새로고침] (생성 완료 후 새로고침하면 -> 댓글 전체조회시 추가되어 표기됨)
+                window.location.reload();
+            });
+        });
+    }
+</script>

@@ -8,3 +8,19 @@
 헬로월드
 </body>
 </html>
+
+<!--action, method없는 <form>내부 필드별 input추가-->
+<!--action, method없는 <form>내부 필드별 input추가-->
+<!--input nickname-->
+<div class="mb-3"><label for="new-comment-nickname" class="form-label">nickname</label>
+    <input type="text"
+           id="new-comment-nickname"
+           class="form-control form-control-sm">
+</div>
+
+
+<!-- hidden input (no label)-->
+<!-- ex> 입력없이 현재 게시글상태 로 항상 따라붙는 상위도메인 id -->
+<!-- ex> 삽입되는 html코드지만, 현재게시글 객체(articel) + 댓글list(commentDtos)를 받아 사용가능한 상태 -->
+<!--     여러필드 쓸 땐, 갹채 열/닫으로  한꺼번에 [[#article]] - value ="[[id]]" - [[/article]] -->
+<!--     한 필드를 쓸 땐, 객체.필드                           value ="[[article.id]]          -->
