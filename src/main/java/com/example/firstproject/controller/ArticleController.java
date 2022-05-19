@@ -1,8 +1,10 @@
 package com.example.firstproject.controller;
 
 import com.example.firstproject.dto.ArticleDto;
+import com.example.firstproject.dto.CommentDto;
 import com.example.firstproject.entity.Article;
 import com.example.firstproject.repository.ArticleRepository;
+import com.example.firstproject.service.CommentService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,10 @@ public class ArticleController {
 
     @Autowired
     private ArticleRepository articleRepository;
+
+    //22-7. 하위도메인의 CRUD는 service단위로 하기 위해 service를 주입한다.
+    @Autowired
+    private CommentService commentService;
 
     // ---------1. create-----------------------------------------
     @GetMapping("/articles/new")
@@ -48,7 +54,13 @@ public class ArticleController {
         log.info("id = " + id);
         final Article articleEntity = articleRepository.findById(id).orElse(null);
 
+        //22-6. 하위도메인CRUD는 상위repo가 포함된 복잡CRUD라서, repo가 아닌 개발된 service단위로 데이터를 처리한다.
+        // 댓글데이터 전체조회(comments) with 상위도메인 id
+        final List<CommentDto> commentDtos = commentService.comments(id);
+
         model.addAttribute("article", articleEntity);
+        //22-8. 템플릿 뷰로한꺼번에 넣어주기 위해 하위도메인 dto list도 담아서보낸다.
+        model.addAttribute("commentDtos", commentDtos);
 
         return "articles/show";
     }

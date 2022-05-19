@@ -21,4 +21,10 @@
 <!--14-1. html에서 delete를 제공안해주기 때문에, get방식의 a태그로 요청한다.-->
 <a href="/articles/{{article.id}}/delete" class="btn btn-danger">Delete</a>
 <a href="/articles">Go to Article List</a>
+
+<!--22-1. 코멘트는 글 개별조회에 직접 작성이 아니라, mustache 삽입형태로 작성한다.-->
+{{>comments/_comments}}
+<!--22-2. recompile하면 화면에러나는데 아직 파일이 없어서 -->
+<!-- template /comments / _comments.mustache 파일을 생성해준다.-->
+
 {{>layouts/footer}}

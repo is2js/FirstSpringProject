@@ -1,5 +1,6 @@
 package com.example.firstproject.entity;
 
+import com.example.firstproject.dto.CommentDto;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -46,10 +47,21 @@ public class Comment {
     @Column
     private String body;
 
-    //20-8. 여기까지 댓글(many) entity를 완성하고, 웹을 실행후,
-    // 1) DDL log에 댓글 테이블이 만들어지는지 확인한다.
-    // 2) h2콘솔에서도 생성되는지 확인한다.
-    // 3) @JoinColumn에서 부모(일)entity의 id가 저장될 칼럼명을 변경해보기도 한다.
+    // setter형태는 싼것이라도 의존할 수 밖에 없으며, update로직을 entity내부에 생성해도 된다.
+    public void patch(final CommentDto dto) {
+        //21-35.
+        //  예외발생: 수정uri속 id(->조회후 entity속 id) vs json으로 날아온 수정요청 body 속 id 같은지 검증
+        if (id != dto.getId()) {
+            throw new IllegalArgumentException("댓글 수정 실패! 잘못된 id가 입력되었습니다.");
+        }
+        //21-36. 수정요청 body(dto)에 [수정을 원하여 보내진 데이터가 존재할때만 = not null일때만] entity필드를 업데이트
+        //   - 상위도메인을 빼고
+        if (dto.getNickname() != null) {
+            this.nickname = dto.getNickname();
+        }
+        if (dto.getBody() != null) {
+            this.body = dto.getBody();
+        }
+    }
 
-    //20-9. 테이블이 완성되었으면 -> 더미데이터를 data.sql을 통해 추가한다.
 }

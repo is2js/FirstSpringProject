@@ -1,0 +1,21 @@
+<div id="comments-list">
+    <!--22-4. mustache문법으로 응답받는 댓글list를 알아서 갯수만큼 반복시켜준다.-->
+    <!-- 반복되더라도, 각각이 객체라서 -> 객체속 필드를 중괄호로 뽑아쓰면 된다.-->
+    {{#commentDtos}}
+        <!--22-5. 개별 댓글도 영역을 만들어주고 + id는 comments - 개별id로 준다.-->
+        <!--통합해서 보이는 것 뿐만 아니라, id에 개별id를 줬다는 것은 js 클릭시 갖다 쓸 수 있다는 말이다.-->
+        <!--추가적으로 부트스트랩의 card를 class로 입혀보자-->
+        <!-- div#comments-id.card -->
+        <!--<div id="comments-id" class="card"></div>-->
+        <div id="comments-{{id}}" class="card m-2">
+            <!--            .card-header-->
+            <!--            .card-body-->
+            <div class="card-header">
+                {{nickname}}
+            </div>
+            <div class="card-body">
+                {{body}}
+            </div>
+        </div>
+    {{/commentDtos}}
+</div>
