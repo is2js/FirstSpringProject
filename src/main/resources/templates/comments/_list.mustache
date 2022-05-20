@@ -1,21 +1,218 @@
 <div id="comments-list">
-    <!--22-4. mustache문법으로 응답받는 댓글list를 알아서 갯수만큼 반복시켜준다.-->
-    <!-- 반복되더라도, 각각이 객체라서 -> 객체속 필드를 중괄호로 뽑아쓰면 된다.-->
     {{#commentDtos}}
-        <!--22-5. 개별 댓글도 영역을 만들어주고 + id는 comments - 개별id로 준다.-->
-        <!--통합해서 보이는 것 뿐만 아니라, id에 개별id를 줬다는 것은 js 클릭시 갖다 쓸 수 있다는 말이다.-->
-        <!--추가적으로 부트스트랩의 card를 class로 입혀보자-->
-        <!-- div#comments-id.card -->
-        <!--<div id="comments-id" class="card"></div>-->
+        <!--반복문 속 개별 댓글 -->
         <div id="comments-{{id}}" class="card m-2">
-            <!--            .card-header-->
-            <!--            .card-body-->
             <div class="card-header">
                 {{nickname}}
+                <!-- 댓글 수정 모달 트리거 버튼 -->
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#comment-edit-modal"
+                        data-bs-id="{{id}}"
+                        data-bs-nickname="{{nickname}}"
+                        data-bs-body="{{body}}"
+                        data-bs-article-id="{{articleId}}">
+                    수정
+                </button>
+                <!--25-1. 삭제 버튼 추가-->
+                <!--button[type="button"].btn.btn-sm.btn-outline-danger{삭제}-->
+                <!-- <button type="button" class="btn btn-sm btn-outline-danger">삭제</button> -->
+                <!--25-4. 여러개 생기는 삭제버튼에 대해 id가 아닌 class추가(comment-delete-btn)를 추가하여 변수화가능하게 해주기-->
+                <!-- <button type="button" class="btn btn-sm btn-outline-danger comment-delete-btn">삭제</button>-->
+                <!--25-7. 삭제요청에 필요한 개별댓글id를 버튼태그의 id=""가 아니라 `data-domain-id`의 새로운 속성으로 추가해준다.-->
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger comment-delete-btn"
+                        data-comment-id="{{id}}">
+                    삭제
+                </button>
             </div>
-            <div class="card-body">
-                {{body}}
-            </div>
+            <div class="card-body"> {{body}} </div>
         </div>
     {{/commentDtos}}
 </div>
+
+
+<!-- 댓글 수정 모달 -->
+<div class="modal fade" id="comment-edit-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">댓글 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 댓글 수정 form (from 생성 form)-->
+                <!--   생성form과 다르게, 데이터바깥영역에서 대기 중인 modal은 hidden input value 비워두고, 트리거 버튼을 통해 받음 -->
+                <form>
+                    <!--input nickname-->
+                    <div class="mb-3">
+                        <label for="new-comment-nickname" class="form-label">nickname</label>
+                        <input type="text" id="edit-comment-nickname" class="form-control form-control-sm">
+                    </div>
+
+                    <!--body-->
+                    <div class="mb-3">
+                        <label for="edit-comment-body" class="form-label">body</label>
+                        <textarea id="edit-comment-body"
+                                  rows="3"
+                                  class="form-control form-control-sm"></textarea>
+                    </div>
+
+                    <!-- hidden input 2개 (게시글id(fk), 댓글id(pk)  with no value -->
+                    <!--   생성form과 다르게, 데이터바깥영역에서 대기 중인 modal은 hidden input value 비워두고, 트리거 버튼을 통해 받음 -->
+                    <input type="hidden" id="edit-comment-article-id">
+                    <input type="hidden" id="edit-comment-id">
+
+                    <!-- button -->
+                    <button id="comment-update-btn" class="btn btn-outline-primary btn-sm" type="button">댓글 수정</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--모달 이벤트 처리-->
+<script>
+    {
+        //(1) 데이터를 받을 modal 변수화
+        const commentEditModal = document.querySelector("#comment-edit-modal");
+        //(2) modal 변수화 이후 모달트리거버튼 열림 이벤트 감지( show.bs.modal )
+        //  - 일반 button은 click event를 감지했으나, boostrap modal은 트리거버튼은 이벤트 자동이고, modal에서 수동적으로 트리거버튼의 클릭을 감지한다.
+        //  - button의 클릭이벤트는 데이터를 받을 일이 없어서 -> event를 인자로 받지않았지만,
+        //    modal은 트리거버튼 event를 인자로 받아야 -> 그 내부의 데이터를 받을 수 있다.
+        //  - boostrap js예제에 나와있는, show.bs.modal이라는 이벤트를 감지한다.
+        commentEditModal.addEventListener("show.bs.modal", function (event) {
+            // 24-5. 트리거버튼을 통해 받는 event가 뭔지 콘솔로 먼저 찍어본다. 그래야 내부 데이터를 받아올 수 있을 것이다.
+            // console.log("모달이 열렸습니다");
+            // 24-6. 부트스트랩 문서를 보면 event.relatedTarget를 통해 모달트리거버튼을 통째로 받을 수 있다고 한다.
+            //       원래 있는 필드값은 아니라서 .relatedTarget는 자동완성이 안된다.
+            // console.log(event.relatedTarget);
+            // 24-7. 모달트리거버튼을 통째로 받을 수 있다면 변수화해서 받아와 -> 속성들을 값으로 뽑아온다.
+            // 받은 모달 트리거 버튼 변수화
+            const triggerBtn = event.relatedTarget;
+            // 모달 트리거 버튼 속성 데이터 가져오기
+            const id = triggerBtn.getAttribute("data-bs-id");
+            const articleId = triggerBtn.getAttribute("data-bs-article-id");
+            const nickname = triggerBtn.getAttribute("data-bs-nickname");
+            const body = triggerBtn.getAttribute("data-bs-body");
+
+            //데이터를 modal 속 수정form에 입력하기 by id+querySelector
+            document.querySelector("#edit-comment-id").value = id;
+            document.querySelector("#edit-comment-article-id").value = articleId;
+            document.querySelector("#edit-comment-nickname").value = nickname;
+            document.querySelector("#edit-comment-body").value = body;
+        });
+    }
+
+    // 24-8. 수정완료 버튼 변수화 -> 클릭이벤트 감지 -> restAPI에 수정 요청한다.
+    {
+        // 수정완료버튼 변수화
+        const commentUpdateBtn = document.querySelector("#comment-update-btn");
+
+        // 클릭 이벤트 감지 및 fetch요청
+        // - click event는 데이터를 받아올 일이 없어서 function() {}의 event인자를 줘도 되고 안줘도 된다.
+        commentUpdateBtn.addEventListener("click", function (event) {
+            //fetch전, 수정 요청 댓글 데이터 js객체 생성
+            const comment = {
+                id: document.querySelector("#edit-comment-id").value,
+                article_id: document.querySelector("#edit-comment-article-id").value,
+                nickname: document.querySelector("#edit-comment-nickname").value,
+                body: document.querySelector("#edit-comment-body").value
+            }
+            //console.log(comment);
+
+            // 수정 REST API 호출 by fetch() -> url, 통신js객체 블록{}
+            const url = "/api/comments/" + comment.id;
+            fetch(url, {
+                method: "PATCH", // PATCH요청 소문자 쓰면 안됨
+                body: JSON.stringify(comment), // js객체 -> JSON으로 전달
+                headers: {
+                    "Content-Type": "application/json"
+                }
+                //}); // 요청까지만 작성하고, 응답 로직 작성 전, log + 실db를 확인한다.
+                // 요청응답이 왔을 때, `function(response) { 로직 }`로 함수를 실행시켜 로직을 수행하지만, `람다식 response => {} `로 줄인 것이다.
+            }).then(response => {
+                //http 응답 코드에 따른 메세지 출력
+                const msg = (response.ok) ? "댓글이 수정되었습니다." : "댓글 수정 실패!";
+                alert(msg);
+                //새로고침
+                window.location.reload();
+            })
+        });
+    }
+</script>
+
+<!--24-2. 댓글 삭제버튼 처리-->
+<!--        새롭게 script 태그를 만들어도 된다. with {} scope 제한-->
+<script>
+    {
+        //(1) 삭제버튼을 변수화해서 가져온다.
+        // 24-3. 여러개 반복해서 생기는 삭제 button태그는 id가 아닌 class selector(.) + querySelectorAll()로 찾는다.
+        //    -> class를 버튼 생성할 때 주는 것이 아니라. js에서 변수로 가져올 때 querySelector(.abc)입려후 -> 버튼태그로 가서 class를 그때그때 추가해준다.
+        //    : .domain-crud-태그명(.comment-delete-btn)
+        // const commentDeleteBtns = document.querySelector(".comment-delete-btn");
+        // 24-5. querySelector()는 가장 먼저 찾은 것 1개만 변수화해준다. -> querySelectorAll로 바꾸자.
+        //       변수명도 btn -> Btns로 바꿔주자.
+        const commentDeleteBtns = document.querySelectorAll(".comment-delete-btn");
+
+        //(2) 삭제 버튼 클릭 이벤트 처리 -> 삭제할 댓글 id 가져오기
+        // commentDeleteBtns.addEventListener("click", function () {
+        //     // cf) 클릭 이벤트를 달고 기본적으로 log로 event를 확인하자.
+        //     console.log("삭제 버튼이 클릭되었습니다.");
+        // });
+        // 24-6. buttons변수를 반복문을 돌려 -> addEventListener도 매번 달아줘야한다
+        //       반복문을 .forEach(단일 => {}) 람다식으로 처리한다.
+        //commentDeleteBtns.forEach(btn => {})
+        commentDeleteBtns.forEach(btn => {
+            //btn.addEventListener("click", function (){}) ;
+            // function() {}  도 람다식 () => {}로 줄인다.
+            // btn.addEventListener("click", () => {
+            //console.log("삭제 버튼이 클릭되었습니다.");
+            //25-8. 삭제버튼에 박힌 삭제할 댓글id받아오기
+            // -> 클릭이벤트의 대상(삭제버튼)을 받아오려면, addEventListener의 2번째인자인, 실행로직 인자를 (event)로 주고 람다식 내부에서 event.srcElement;로 가져온다!
+            btn.addEventListener("click", (event) => {
+                //(1) 이벤트 발생 요소(삭제버튼) 선택
+                const commentDeleteBtn = (event.target) ? event.target : event.srcElement; // deeprecated가 뜨는데, 검색해보니 event.target으로 이제 바뀐 것 같다. var eventObject = (event.target)?event.target:event.srcElement;
+                //(2) 속성에 박힌 댓글id 가져오기
+                const commentId = commentDeleteBtn.getAttribute("data-comment-id");
+                // 뭔가 데이터를 받아왔다면 정말 잘 가져와지는지 로그찍어보기
+                // js에서는 따옴표 대신 [``백틱 + ${}]을 format string처럼 쓸 수 있다.
+                //`삭제 버튼 클릭: ${commentId}`
+                console.log(`삭제 버튼 클릭: ${commentId}`);
+
+                //25-9. 가져온 id로 삭제요청 하기 by fetch(url, 통신객체블럭{})
+                // 생성, 수정과 달리, 삭제의 fetch는 url로만 id가 가고, json -> requestDTO가 안가기 때문에,
+                // -> body(data) + headers(datatype)없이 method만 통신정보 js객체에 명시해주면 된다.
+                const url = `/api/comments/${commentId}`;// 백틱 + 달러중괄호의 f-string으로 url만들기
+                fetch(url, {
+                    method: "DELETE"
+                }).then(response => {
+                    //25-10. 댓글 삭제 실패 처리
+                    // 이번에는 reponse.ok + ()?:삼항연사자로 msg작성이 아니라 다른 방식으로 해보자.
+                    // if문으로 처리함.
+                    // -> 항상 정상 로직으로 들어가기 이전에, if 실패 -> 실패시 로직 ->ealry return부터 해주면 else + indent를 줄인다.
+                    if (!response.ok) {
+                        alert("댓글 삭제 실패!")
+                        return; // 실패의 경우 실패로직 + early return까지
+                    }
+
+                    // 삭제 실패 응답시 if-early return을 안타는 경우 -> 삭제 성공 응답의 경우
+
+                    // 25-11. 삭제 성공시 js로 해당 댓글을 [새로고침 없이] 실시간 지움
+                    // -> 반복되는 개별댓글 영역 자체를 삭제해야한다. 처음에 개별댓글 영역을 div + id를  domains-[[댓글id]]로 준 이유는, 실시간 삭제를 위해 가장 바깥 영역에 id를 줬다.
+                    // --> 데이터가 아니므로 속성으로 주지 않고, id=""로 주되 domains-[[댓글id]]형식으로 생성해서 줬었다.
+                    // my) 삭제는 맨 바깥영역div의 id만 찾아서 삭제하면, 내부다 삭제 된다.
+                    //     if) 생성 or 수정해야한다면? 영역내부 필드들을 개별 생성/필드들 모두 수정 해줘야해서.. 복잡하다? -> 그래서 새로고침으로..?!
+                    // (1) 개별댓글 영역 삭제를 위해, div영역 변수화 by id+querySelector
+                    //     - 백틱+달러중괄호의 f-string으로   변수화된 id를 사용해보자
+                    const target = document.querySelector(`#comments-${commentId}`);
+                    target.remove(); // java list처럼 찾은 태그.remove(); 만 하면 실시간으로 영역+영역내부요소들 모조리 삭제된다.
+
+                    // -> 새로고침(window.location.reload())을 통한 update된 db정보(삭제된 db정보)에서 댓글 전체조회를 하지 않고
+                    //    db에서 삭제 성공 응답만 주면 -> 화면에서도 실시간으로 삭제했다.
+                });
+            });
+        });
+    }
+</script>
