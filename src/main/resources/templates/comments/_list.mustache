@@ -143,74 +143,36 @@
     }
 </script>
 
-<!--24-2. 댓글 삭제버튼 처리-->
-<!--        새롭게 script 태그를 만들어도 된다. with {} scope 제한-->
+<!-- 댓글 삭제버튼 처리-->
 <script>
     {
-        //(1) 삭제버튼을 변수화해서 가져온다.
-        // 24-3. 여러개 반복해서 생기는 삭제 button태그는 id가 아닌 class selector(.) + querySelectorAll()로 찾는다.
-        //    -> class를 버튼 생성할 때 주는 것이 아니라. js에서 변수로 가져올 때 querySelector(.abc)입려후 -> 버튼태그로 가서 class를 그때그때 추가해준다.
-        //    : .domain-crud-태그명(.comment-delete-btn)
-        // const commentDeleteBtns = document.querySelector(".comment-delete-btn");
-        // 24-5. querySelector()는 가장 먼저 찾은 것 1개만 변수화해준다. -> querySelectorAll로 바꾸자.
-        //       변수명도 btn -> Btns로 바꿔주자.
+        // 삭제버튼[들]을 변수화해서 가져온다.
         const commentDeleteBtns = document.querySelectorAll(".comment-delete-btn");
 
-        //(2) 삭제 버튼 클릭 이벤트 처리 -> 삭제할 댓글 id 가져오기
-        // commentDeleteBtns.addEventListener("click", function () {
-        //     // cf) 클릭 이벤트를 달고 기본적으로 log로 event를 확인하자.
-        //     console.log("삭제 버튼이 클릭되었습니다.");
-        // });
-        // 24-6. buttons변수를 반복문을 돌려 -> addEventListener도 매번 달아줘야한다
-        //       반복문을 .forEach(단일 => {}) 람다식으로 처리한다.
-        //commentDeleteBtns.forEach(btn => {})
+        //삭제 버튼들 -> 반복문 -> 클릭 이벤트 처리 -> 삭제할 댓글 id 가져오기
         commentDeleteBtns.forEach(btn => {
-            //btn.addEventListener("click", function (){}) ;
-            // function() {}  도 람다식 () => {}로 줄인다.
-            // btn.addEventListener("click", () => {
-            //console.log("삭제 버튼이 클릭되었습니다.");
-            //25-8. 삭제버튼에 박힌 삭제할 댓글id받아오기
-            // -> 클릭이벤트의 대상(삭제버튼)을 받아오려면, addEventListener의 2번째인자인, 실행로직 인자를 (event)로 주고 람다식 내부에서 event.srcElement;로 가져온다!
             btn.addEventListener("click", (event) => {
-                //(1) 이벤트 발생 요소(삭제버튼) 선택
+                // 이벤트 발생 요소(삭제버튼) 선택
                 const commentDeleteBtn = (event.target) ? event.target : event.srcElement; // deeprecated가 뜨는데, 검색해보니 event.target으로 이제 바뀐 것 같다. var eventObject = (event.target)?event.target:event.srcElement;
-                //(2) 속성에 박힌 댓글id 가져오기
+                // 속성에 박힌 댓글id 가져오기
                 const commentId = commentDeleteBtn.getAttribute("data-comment-id");
-                // 뭔가 데이터를 받아왔다면 정말 잘 가져와지는지 로그찍어보기
-                // js에서는 따옴표 대신 [``백틱 + ${}]을 format string처럼 쓸 수 있다.
-                //`삭제 버튼 클릭: ${commentId}`
                 console.log(`삭제 버튼 클릭: ${commentId}`);
 
-                //25-9. 가져온 id로 삭제요청 하기 by fetch(url, 통신객체블럭{})
-                // 생성, 수정과 달리, 삭제의 fetch는 url로만 id가 가고, json -> requestDTO가 안가기 때문에,
-                // -> body(data) + headers(datatype)없이 method만 통신정보 js객체에 명시해주면 된다.
-                const url = `/api/comments/${commentId}`;// 백틱 + 달러중괄호의 f-string으로 url만들기
+                // 가져온 id로 삭제요청 하기 by fetch(url, 통신객체블럭{})
+                // - body(data) + headers(datatype)없이 method만 통신정보 js객체에 명시해주면 된다.
+                const url = `/api/comments/${commentId}`;
+
                 fetch(url, {
                     method: "DELETE"
                 }).then(response => {
-                    //25-10. 댓글 삭제 실패 처리
-                    // 이번에는 reponse.ok + ()?:삼항연사자로 msg작성이 아니라 다른 방식으로 해보자.
-                    // if문으로 처리함.
-                    // -> 항상 정상 로직으로 들어가기 이전에, if 실패 -> 실패시 로직 ->ealry return부터 해주면 else + indent를 줄인다.
+                    // 댓글 삭제 실패 처리
                     if (!response.ok) {
                         alert("댓글 삭제 실패!")
-                        return; // 실패의 경우 실패로직 + early return까지
+                        return;
                     }
-
-                    // 삭제 실패 응답시 if-early return을 안타는 경우 -> 삭제 성공 응답의 경우
-
-                    // 25-11. 삭제 성공시 js로 해당 댓글을 [새로고침 없이] 실시간 지움
-                    // -> 반복되는 개별댓글 영역 자체를 삭제해야한다. 처음에 개별댓글 영역을 div + id를  domains-[[댓글id]]로 준 이유는, 실시간 삭제를 위해 가장 바깥 영역에 id를 줬다.
-                    // --> 데이터가 아니므로 속성으로 주지 않고, id=""로 주되 domains-[[댓글id]]형식으로 생성해서 줬었다.
-                    // my) 삭제는 맨 바깥영역div의 id만 찾아서 삭제하면, 내부다 삭제 된다.
-                    //     if) 생성 or 수정해야한다면? 영역내부 필드들을 개별 생성/필드들 모두 수정 해줘야해서.. 복잡하다? -> 그래서 새로고침으로..?!
-                    // (1) 개별댓글 영역 삭제를 위해, div영역 변수화 by id+querySelector
-                    //     - 백틱+달러중괄호의 f-string으로   변수화된 id를 사용해보자
+                    // 삭제 성공 응답의 경우
                     const target = document.querySelector(`#comments-${commentId}`);
-                    target.remove(); // java list처럼 찾은 태그.remove(); 만 하면 실시간으로 영역+영역내부요소들 모조리 삭제된다.
-
-                    // -> 새로고침(window.location.reload())을 통한 update된 db정보(삭제된 db정보)에서 댓글 전체조회를 하지 않고
-                    //    db에서 삭제 성공 응답만 주면 -> 화면에서도 실시간으로 삭제했다.
+                    target.remove();
                 });
             });
         });

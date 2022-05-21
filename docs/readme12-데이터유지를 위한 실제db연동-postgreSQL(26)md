@@ -1,0 +1,114 @@
+### 기본
+- 지금까진 h2 database = in-`memory` database 
+	![20220521101549](https://raw.githubusercontent.com/is2js/screenshots/main/20220521101549.png)
+	- 메모리db특성상 `매 서버 실행마다 데이터 초기화` -> ` data.sql로 더미데이터를 초기화`
+- 외부 실제DB -> 데이터유지
+	![20220521101712](https://raw.githubusercontent.com/is2js/screenshots/main/20220521101712.png)
+
+- DB연동 3가지
+	![20220521101840](https://raw.githubusercontent.com/is2js/screenshots/main/20220521101840.png)
+	1. 외부에 db설치
+	2. db driver를 springboot에 추가
+	3. springboot에 설정
+		- postgreSQL을 사용함
+			![20220521101856](https://raw.githubusercontent.com/is2js/screenshots/main/20220521101856.png)
+
+### 외부 db설치와 연동
+1. https://postgresql.org/ 에서 다운로드
+	- stack builder 빼고 설치
+	- superuse는 postgre`s`의 비밀번호 : postgres로 동일하게 해주자
+	- 경로
+		- 설치경로: C:\Program Files\PostgreSQL\14
+		- 저장경로: C:\Program Files\PostgreSQL\14\data
+		- pgAdmin4: C:\Program Files\PostgreSQL\14\pgAdmin 4
+	- port: 5432
+	- Locale: Korean, Korea (mac: ko_KR.UTF-8)
+		![20220521103924](https://raw.githubusercontent.com/is2js/screenshots/main/20220521103924.png)
+2. 설치확인 겸 pgadmin 4 실행후 db 생성
+	- `pgadmin` 검색해서 실행
+		![20220521104256](https://raw.githubusercontent.com/is2js/screenshots/main/20220521104256.png)
+	- default로 databases에 postgres가 있다.
+		![20220521104352](https://raw.githubusercontent.com/is2js/screenshots/main/20220521104352.png)
+	- **우리가 쓸 database를 추가해야한다.**
+		- db명을 `firstproject_db`로 만든다.
+		![20220521104415](https://raw.githubusercontent.com/is2js/screenshots/main/20220521104415.png)
+		![20220521104451](https://raw.githubusercontent.com/is2js/screenshots/main/20220521104451.png)
+	- databases > 만든db > schemas > tables를 확인한다.
+		- table은 springboot에서 연동해서 만들어질 것이다.
+			![20220521104610](https://raw.githubusercontent.com/is2js/screenshots/main/20220521104610.png)
+
+3. springboot의 `build.gradle`에서 drive추가
+	- 의존성 추가가 driver추가 인 것 같다.
+	- `start.spring.io` > `Gradle Project` 선택 > `add dependencies` > `postgresql` 검색후 > 하단의 `EXPLORE`를 통해 확인
+		![20220521111952](https://raw.githubusercontent.com/is2js/screenshots/main/20220521111952.png)
+		![20220521111918](https://raw.githubusercontent.com/is2js/screenshots/main/20220521111918.png)
+		![20220521111925](https://raw.githubusercontent.com/is2js/screenshots/main/20220521111925.png)
+		![20220521112022](https://raw.githubusercontent.com/is2js/screenshots/main/20220521112022.png)
+	```java
+	//postgreSQL 드라이버 추가
+    runtimeOnly 'org.postgresql:postgresql'
+	```
+	- gradle 탭에 runtimeClasspath에서 추가된 것을 확인할 수 있다.
+		![20220521112058](https://raw.githubusercontent.com/is2js/screenshots/main/20220521112058.png)
+
+4. springboot에서 연동설정 in `application.properties`
+	- 구글에서 `springboot postgresql application.properties` 검색후 아래와 같이 설정해주기?!
+	```java
+	# PostgreSQL 연동
+	spring.datasource.url=jdbc:postgresql://localhost:5432/firstproject_db
+	spring.datasource.username=postgres
+	spring.datasource.password=postgres
+	# 초기데이터 설정(h2는 data.sql을 기본적으로 읽었었으나, 외부db일 땐, 명시)
+	spring.sql.init.data-locations=classpath:/data.sql
+	# 초기화를 매번 수행
+	spring.sql.init.mode=always
+	# 서버가 켜질때 db생성 -> 서버꺼지면 drop하기
+	spring.jpa.hibernate.ddl-auto=create-drop
+	```
+	- 서버 재시작해서 
+		1. `http://localhost:8080/articles/`에 접속해서 확인
+			![20220521112852](https://raw.githubusercontent.com/is2js/screenshots/main/20220521112852.png)
+		2. pgadmin4에서 확인
+			![20220521112847](https://raw.githubusercontent.com/is2js/screenshots/main/20220521112847.png)
+	- 현재는 `create-drop`설정으로 매번 초기화되니까 지우고 껐다 키면, h2처럼 다시 살아나는지 확인
+
+5. 서버재실행여부와 상관없이 데이터유지(삭제하면 삭제된체로)
+	- 초기화를 애초에 안하니까 데이터가 없다.
+		```java
+		# 초기화를 매번 수행 always -> never
+		spring.sql.init.mode=never
+		# 서버가 켜질때 db생성 -> 서버꺼지면 drop하기(create-drop) -> 유지하기 update
+		spring.jpa.hibernate.ddl-auto=update
+		```
+		![20220521113120](https://raw.githubusercontent.com/is2js/screenshots/main/20220521113120.png)
+	- 데이터를 추가하고, 웹 서버를 꺼도 유지되는지 확인해보자.
+		![20220521113220](https://raw.githubusercontent.com/is2js/screenshots/main/20220521113220.png)
+	- db에서는 queryTool을 클릭해서 쿼리날려 조회해본다.
+		![20220521113400](https://raw.githubusercontent.com/is2js/screenshots/main/20220521113400.png)
+		![20220521113418](https://raw.githubusercontent.com/is2js/screenshots/main/20220521113418.png)
+
+### 댓글
+
+강의 수강중 댓글에 연습으로 긴 문자를 넣었을 때 다음과 같이 문제가 발생 합니다 어떻게 해결 할 수 있을 까요?
+character varying(255) 자료형에 너무 긴 자료를 담으려고 합니다
+- 다음 키워드로 구글링해보세요 "jpa String 길이 변경"
+- 엔티티의 필드에 다음과 같이 길이를 지정할 수 있습니다!
+	```java
+	@Column(length = 1000)
+	private String body;
+	```
+
+
+
+11:00 에 나온 설정으로 서버를 돌려 댓글 작성하기를 하면,  SQL Error: 0, SQLState: 23505  org.postgresql.util.PSQLException: 오류: 중복된 키 값이 "comment_pkey" 고유 제약 조건을 위반함 이라는 문구로 에러가 뜨는데요ㅠ (h2로 했을때는 문제없이 잘 돌아갑니다.) 
+찾아보니 무결성 위반으로, 동일한 데이터key가 이미 존재하기에 발생하는 에러라 하는데 갑자기 왜 이러는거죠?ㅠㅠ(해결방법도 잘 모르겠습니다..)
+
+
+댓글을 작성하면, 어느 게시물에 달던지   " Detail: (id)=(1) 키가 이미 있습니다. " 라고 뜨고, 댓글 등록 실패 알림창을 끄고 또 다시 댓글 작성버튼을 누르면 id값이 1씩 계속 증가합니다. 더미데이터에서 댓글 id를 9까지 넣어줘서인지, id=10일때부터는 댓글 작성이 잘 되는데요, 어떻게 해결핤 ㅜㅇ있을까요?
+
+
+홍팍
+- "data.sql" 파일의 INSERT INTO에서 PK인 id값 명시를 제거해주세요.
+	- PK의 시퀀스가  자동 증가 되지않아 생기는 문제입니다
+
+좋은 질문 감사합니다 🐯
