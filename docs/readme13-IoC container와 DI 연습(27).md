@@ -196,10 +196,13 @@
 		- **my) 자주 사용되는 객체의 `new 객체()`로 객체 생성하는 과정을 IoC에게 맡겨 관리하게 한다.**
 
 3. 재료공장 뿐만 아니라 `Chef`객체도 IoC에서 관리되도록 해보자.
-	![20220521160046](https://raw.githubusercontent.com/is2js/screenshots/main/20220521160046.png)
 	1. 객체 생성 부분을 주석처리한다(제거)
+		![20220521160315](https://raw.githubusercontent.com/is2js/screenshots/main/20220521160315.png)
 	2. 해당 class에 @Component를 달아 IoC Container에 올린다.
+		![20220521160343](https://raw.githubusercontent.com/is2js/screenshots/main/20220521160343.png)
+		![20220521160046](https://raw.githubusercontent.com/is2js/screenshots/main/20220521160046.png)
 	3. 사용하는 곳에 @Autoweired로 DI 한다
+
 
 
 

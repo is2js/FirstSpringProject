@@ -7,12 +7,14 @@ import com.example.firstproject.repository.ArticleRepository;
 import com.example.firstproject.repository.CommentRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 //21-2. 
 @Service
+@Slf4j
 public class CommentService {
     //21-3.
     @Autowired
@@ -52,39 +54,24 @@ public class CommentService {
             .collect(Collectors.toList());
     }
 
-    //21-22. 여러단계에서 db를 건들이고 있다면, 트랜잭셔널을 달아놔야 중간에 에러나도 롤백된다.
     @Transactional
     public CommentDto create(final Long articleId, final CommentDto commentDto) {
-        //21-21. service 생성시 할 일
-        // (1) [생성 요청시 넘어오는 상위도메인의 fk] -> 상위도메인 db조회후 entity응답 + 없으면 예외 발생
-        // (2) 댓글 엔터티 생성
-        // (3) 댓글 엔터티를 db로 저장
-        // (4) dto로 변경하여 반환
+//        // AOP 도입 전 lombok의 @Slf4j 로그찍기
+//        // - lombok의 log.info는 콤마로 formatting 출력 가능
+//        log.info("입력값 => {}", articleId);
+//        log.info("입력값 => {}", commentDto);
 
-        //21-23.
-        // (1) [생성시 넘어오는 상위도메인의 fk] -> 상위도메인 db 조회 및 예외발생
-        // -> 상위entity 객체가 있어야 -> 하위entity가 fk대신 가진 상위entity객체 필드를 채워 생성이 가능해진다...
-        // --> 의미상으로는 하위entity가 어디에 속해있는지를 알 수 있다.
-        // --> my) 하위도메인 생성시, 상위도메인객체 필드 때문이라도, 하위 service는 상위repository를 알고 있어야한다.
         final Article article = articleRepository.findById(articleId)
             .orElseThrow(() -> new IllegalArgumentException("댓글 생성 실패! 대상 게시글이 없습니다."));
-        // 있으면 받아오고, 없으면 아래로 내려가지 않고 예외가 발생한다.
-        // 예외 메세지는  도메인 [생성] 실패로 현재 로직인 create(생성)이 실패했음을 메세지로 넣어준다.
 
-        //21-24.
-        // (2) 댓글 엔터티 생성
-        // -> 조회된 상위entity를 인자로 받아가야 하위entity를 생성할 수 있다.
-        // --> 강의에서는  [비싼것]EntityClass.정펙매( commentDto[싼것에 의존], 상위entity) 해서 만들었다.. 이러면 안됨..
-        // --> 나는 commentDto.toEntity()로 만들 것이다.  싼것.to비싼것() (O) / 싼것Class.정팩매( 비싼것 의존 ) (O)
-        // --> my) 생성이므로 id는 건네주지 않아도 된다. / entity생성이니 좌항을 미리 만들어놓는다. final Comment comment =
-        // - 아직 toEntity() 생성은 있다하고, 좌항을 잡아줘서 -> 아래까지 구조를 잡아 줄 수 있게 한다.
         final Comment comment = commentDto.toEntity(article);
 
-        //21-26
-        // (3) 댓글 엔터티를 db로 저장
         final Comment created = commentRepository.save(comment);
-        // (4) dto로 변경하여 반환 by dtoClass.정팩매( 비싼것 )
-        return CommentDto.createCommentDto(created);
+
+        final CommentDto createDto = CommentDto.createCommentDto(created);
+        // AOP 도입 전 lombok의 @Slf4j 로그찍기
+//        log.info("반환값 => {}", createDto);
+        return createDto;
     }
 
     @Transactional
