@@ -19,7 +19,11 @@ public class DebuggingAspect {
     // - *는 접근제어자 + return값을 대신함 / (..)는 메서드 인자 모든 것을 의미함
     //28-8. create이외 모든 메서드에 적용하기 위해 메서드명을 * 로 수정한다.
 //    @Pointcut("execution(* com.example.firstproject.service.CommentService.create(..))")
-    @Pointcut("execution(* com.example.firstproject.service.CommentService.*(..))")
+//    @Pointcut("execution(* com.example.firstproject.service.CommentService.*(..))")
+    // 모든 service의 메소드 적용하기
+//    @Pointcut("execution(* com.example.firstproject.service.*Service.*(..))")
+    // 모든 api내부 모든클래스 모든메서드에 적용하기
+    @Pointcut("execution(* com.example.firstproject.api.*.*(..))")
     private void cut() {
     }
 
