@@ -1,5 +1,6 @@
 package com.example.firstproject.api;
 
+import com.example.firstproject.annotation.RunningTime;
 import com.example.firstproject.dto.CommentDto;
 import com.example.firstproject.service.CommentService;
 import java.util.List;
@@ -54,26 +55,13 @@ public class CommentApiController {
     }
 
     //(2) 댓글 생성
-    //21-17. talendAPI로 오는 request요청 속 body -> PathVariable에 상위도메인id 4가 옮에도 불구하고 body에서 fk로 따로 와야한다.
-    // {
-    //  "nickname" : "Hong",
-    //  "body" : "이프 온리",
-    //  "article_id" : 4
-    //}
     @PostMapping("api/articles/{articleId}/comments")
-    //21-18. 생성도 dto응답이 있다.
-    // -> 현재는 request(id null)와 response가 비슷해서 CommentDto를 재활용해서 쓴다
     public ResponseEntity<CommentDto> create(@PathVariable Long articleId,
                                              @RequestBody CommentDto dto) {
         // 서비스에게 생성 로직 위임
-        // 21-19. 받아온 데이터는 다 service인자로 던져준다. ( articleId와 dto속 fk로서의 ariticleId가 중복 같지만 각각 넘겨준다)
-        // -> 두 fk가 같은지 검증할듯?
-        // --> 빨간줄 service.메서드()를 만들때, 미리 응답을 우측에 적어놓으면..(공짜x) controller구조를 미리 만들어놓을 수 있다.
         final CommentDto createdDto = commentService.create(articleId, dto);
 
         // 결과 응답
-        // 21-20. 실패한 경우는 controller에서 처리 안해주냐? 삼항연산자로 null일 때 bad응답 안해주냐?
-        // -> 이번엔 service 메서드 내부에서 생성 실패로 인한 예외를 발생시킬 것이다.
         return ResponseEntity.status(HttpStatus.OK)
             .body(createdDto);
     }
@@ -89,6 +77,8 @@ public class CommentApiController {
 
     //21-33. 삭제는 path속 자신id외에 json이 없으므로 @RequestBody 및 dto 삭제
     @DeleteMapping("api/comments/{id}")
+    //28-16. 메서드는 다 작동하니 @RunningTime을 붙여 시간 측정 aop를 사용한다.
+    @RunningTime
     public ResponseEntity<CommentDto> delete(@PathVariable Long id) {
         final CommentDto updatedDto = commentService.delete(id);
 
